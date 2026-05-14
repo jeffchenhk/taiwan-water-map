@@ -2,604 +2,768 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>台湾水务设施分布图</title>
+<title>台湾水务作战地图</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#080f0d; font-family:'PingFang SC','Microsoft YaHei','Georgia',sans-serif; color:#cdd8cd; overflow:hidden; }
 
-body {
-  background: #080f0d;
-  font-family: 'Georgia', serif;
-  color: #cdd8cd;
-  overflow: hidden;
+/* ── TOP BAR ── */
+#topbar {
+  position:fixed; top:0; left:0; right:0; z-index:1000;
+  height:58px;
+  background:rgba(8,15,13,0.95);
+  border-bottom:1px solid rgba(78,204,163,0.15);
+  backdrop-filter:blur(16px);
+  display:flex; align-items:center; gap:10px;
+  padding:0 20px;
 }
+.logo {
+  display:flex; flex-direction:column; justify-content:center;
+  margin-right:12px; flex-shrink:0;
+}
+.logo h1 { font-size:15px; font-weight:400; letter-spacing:0.3em; color:#e2ede2; text-transform:uppercase; white-space:nowrap; }
+.logo p  { font-size:9px; letter-spacing:0.2em; color:#3d8060; text-transform:uppercase; margin-top:2px; }
+.bar-divider { width:1px; height:28px; background:rgba(78,204,163,0.15); flex-shrink:0; }
 
-#map {
-  width: 100vw;
-  height: 100vh;
+/* search */
+.search-wrap { position:relative; }
+.search-wrap input {
+  background:rgba(78,204,163,0.06);
+  border:1px solid rgba(78,204,163,0.18);
+  color:#c8d8c8;
+  font-size:12px;
+  padding:6px 12px 6px 30px;
+  width:180px;
+  outline:none;
+  border-radius:2px;
+  font-family:inherit;
 }
+.search-wrap input::placeholder { color:#3d6050; }
+.search-wrap input:focus { border-color:rgba(78,204,163,0.45); background:rgba(78,204,163,0.09); }
+.search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:#3d8060; font-size:12px; pointer-events:none; }
 
-/* ── Header ── */
-.hdr {
-  position: fixed;
-  top: 0; left: 0;
-  z-index: 1000;
-  padding: 28px 36px;
-  pointer-events: none;
+/* selects */
+select.f-sel {
+  background:rgba(78,204,163,0.06);
+  border:1px solid rgba(78,204,163,0.18);
+  color:#a8c8a8;
+  font-size:11px;
+  padding:6px 24px 6px 10px;
+  outline:none;
+  border-radius:2px;
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a8a6a'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 8px center;
+  font-family:inherit;
 }
-.hdr h1 {
-  font-size: 26px;
-  font-weight: 300;
-  letter-spacing: 0.35em;
-  color: #e2ede2;
-  text-transform: uppercase;
-}
-.hdr p {
-  font-size: 10px;
-  letter-spacing: 0.25em;
-  color: #4a8a6a;
-  margin-top: 5px;
-  text-transform: uppercase;
-}
+select.f-sel:focus { border-color:rgba(78,204,163,0.45); }
+select.f-sel option { background:#0d1f18; color:#c8d8c8; }
 
-/* ── Count chip ── */
+/* level chips */
+.level-group { display:flex; gap:4px; align-items:center; }
+.lvl-chip {
+  font-size:10px; font-weight:500;
+  padding:4px 10px;
+  border-radius:2px;
+  cursor:pointer;
+  border:1px solid transparent;
+  letter-spacing:0.1em;
+  transition:all 0.2s;
+  opacity:0.45;
+}
+.lvl-chip.on { opacity:1; }
+.lvl-S { border-color:#e8c16d55; color:#e8c16d; }
+.lvl-S.on { background:rgba(232,193,109,0.15); border-color:#e8c16d; }
+.lvl-A { border-color:#4ecca355; color:#4ecca3; }
+.lvl-A.on { background:rgba(78,204,163,0.15); border-color:#4ecca3; }
+.lvl-B { border-color:#93c5fd55; color:#93c5fd; }
+.lvl-B.on { background:rgba(147,197,253,0.15); border-color:#93c5fd; }
+.lvl-C { border-color:#8a9a8a55; color:#8a9a8a; }
+.lvl-C.on { background:rgba(138,154,138,0.15); border-color:#8a9a8a; }
+
 .count-chip {
-  position: fixed;
-  top: 32px; right: 36px;
-  z-index: 1000;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  color: #4ecca3;
-  border: 1px solid rgba(78,204,163,0.3);
-  padding: 6px 14px;
-  pointer-events: none;
+  margin-left:auto;
+  font-size:10px; letter-spacing:0.2em;
+  color:#4ecca3; border:1px solid rgba(78,204,163,0.25);
+  padding:5px 12px; white-space:nowrap; flex-shrink:0;
 }
 
-/* ── Info Card ── */
+/* ── MAP ── */
+#map { position:fixed; top:58px; left:0; right:0; bottom:0; }
+
+/* ── CARD ── */
 #card {
-  position: fixed;
-  top: 50%;
-  right: -440px;
-  transform: translateY(-50%);
-  z-index: 1000;
-  width: 400px;
-  max-height: 90vh;
-  overflow-y: auto;
-  background: rgba(8, 15, 13, 0.94);
-  border: 1px solid rgba(78,204,163,0.18);
-  border-right: none;
-  backdrop-filter: blur(24px);
-  transition: right 0.55s cubic-bezier(0.4, 0, 0.2, 1);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(78,204,163,0.2) transparent;
+  position:fixed;
+  top:58px; right:-460px; bottom:0;
+  z-index:900;
+  width:430px;
+  overflow-y:auto;
+  background:rgba(8,15,13,0.96);
+  border-left:1px solid rgba(78,204,163,0.16);
+  backdrop-filter:blur(24px);
+  transition:right 0.5s cubic-bezier(0.4,0,0.2,1);
+  scrollbar-width:thin;
+  scrollbar-color:rgba(78,204,163,0.2) transparent;
 }
-#card.open { right: 0; }
-
-#card::-webkit-scrollbar { width: 3px; }
-#card::-webkit-scrollbar-thumb { background: rgba(78,204,163,0.25); }
-
-.card-inner { padding: 36px 32px 40px; }
+#card.open { right:0; }
+#card::-webkit-scrollbar { width:3px; }
+#card::-webkit-scrollbar-thumb { background:rgba(78,204,163,0.2); }
+.card-inner { padding:28px 28px 40px; }
 
 .card-close {
-  position: absolute;
-  top: 18px; right: 18px;
-  width: 26px; height: 26px;
-  cursor: pointer;
-  color: #4a8a6a;
-  font-size: 16px;
-  display: flex; align-items: center; justify-content: center;
-  border: 1px solid rgba(74,138,106,0.35);
-  border-radius: 50%;
-  transition: all 0.2s;
-  background: transparent;
+  position:absolute; top:16px; right:16px;
+  width:26px; height:26px; cursor:pointer;
+  color:#4a8a6a; font-size:15px;
+  display:flex; align-items:center; justify-content:center;
+  border:1px solid rgba(74,138,106,0.3); border-radius:50%;
+  background:transparent; transition:all 0.2s;
 }
-.card-close:hover { color: #4ecca3; border-color: #4ecca3; }
+.card-close:hover { color:#4ecca3; border-color:#4ecca3; }
 
-.c-eyebrow {
-  font-size: 9px;
-  letter-spacing: 0.35em;
-  color: #4ecca3;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.c-name {
-  font-size: 21px;
-  font-weight: 300;
-  color: #e2ede2;
-  letter-spacing: 0.06em;
-  line-height: 1.3;
-  margin-bottom: 14px;
-}
-.c-badges {
-  display: flex; gap: 8px; flex-wrap: wrap;
-  margin-bottom: 26px;
-}
+/* card header */
+.c-loc { font-size:9px; letter-spacing:0.3em; color:#3d8060; text-transform:uppercase; margin-bottom:8px; }
+.c-name { font-size:22px; font-weight:300; color:#e2ede2; letter-spacing:0.05em; line-height:1.25; margin-bottom:12px; }
+.c-badges { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
 .badge {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  padding: 3px 11px;
-  border-radius: 20px;
+  font-size:10px; letter-spacing:0.1em;
+  padding:3px 10px; border-radius:20px;
 }
-.b-active   { background: rgba(78,204,163,0.12); color: #4ecca3; border: 1px solid rgba(78,204,163,0.35); }
-.b-build    { background: rgba(232,193,109,0.12); color: #e8c16d; border: 1px solid rgba(232,193,109,0.35); }
-.b-plan     { background: rgba(147,197,253,0.12); color: #93c5fd; border: 1px solid rgba(147,197,253,0.35); }
-.b-reno     { background: rgba(251,146,60,0.12);  color: #fb923c; border: 1px solid rgba(251,146,60,0.35); }
-.b-trial    { background: rgba(167,139,250,0.12); color: #a78bfa; border: 1px solid rgba(167,139,250,0.35); }
-.b-bid      { background: rgba(232,193,109,0.12); color: #e8c16d; border: 1px solid rgba(232,193,109,0.35); }
+.b-active  { background:rgba(78,204,163,0.12); color:#4ecca3; border:1px solid rgba(78,204,163,0.35); }
+.b-build   { background:rgba(232,193,109,0.12); color:#e8c16d; border:1px solid rgba(232,193,109,0.35); }
+.b-plan    { background:rgba(147,197,253,0.12); color:#93c5fd; border:1px solid rgba(147,197,253,0.35); }
+.b-reno    { background:rgba(251,146,60,0.12);  color:#fb923c; border:1px solid rgba(251,146,60,0.35); }
+.b-trial   { background:rgba(167,139,250,0.12); color:#a78bfa; border:1px solid rgba(167,139,250,0.35); }
+.b-bid     { background:rgba(232,193,109,0.12); color:#e8c16d; border:1px solid rgba(232,193,109,0.35); }
+.b-lvl-S   { background:rgba(232,193,109,0.15); color:#e8c16d; border:1px solid rgba(232,193,109,0.5); font-weight:600; }
+.b-lvl-A   { background:rgba(78,204,163,0.15);  color:#4ecca3; border:1px solid rgba(78,204,163,0.5);  font-weight:600; }
+.b-lvl-B   { background:rgba(147,197,253,0.15); color:#93c5fd; border:1px solid rgba(147,197,253,0.5); font-weight:600; }
+.b-lvl-C   { background:rgba(138,154,138,0.15); color:#8a9a8a; border:1px solid rgba(138,154,138,0.5); font-weight:600; }
 
-.divider {
-  border: none;
-  border-top: 1px solid rgba(78,204,163,0.1);
-  margin: 22px 0;
+.c-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:18px; }
+.tag {
+  font-size:9px; letter-spacing:0.1em;
+  padding:2px 8px;
+  border:1px solid rgba(78,204,163,0.15);
+  color:#4a7a5a;
+  border-radius:2px;
 }
-.sec-label {
-  font-size: 9px;
-  letter-spacing: 0.35em;
-  color: #3d8060;
-  text-transform: uppercase;
-  margin-bottom: 14px;
+
+/* sections */
+.sec { margin-bottom:20px; }
+.sec-hd {
+  font-size:9px; letter-spacing:0.35em;
+  color:#3d8060; text-transform:uppercase;
+  margin-bottom:12px;
+  display:flex; align-items:center; gap:10px;
 }
-.kv-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 6px;
-}
+.sec-hd::after { content:''; flex:1; height:1px; background:rgba(78,204,163,0.1); }
+.kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .kv { }
-.kv label {
-  display: block;
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  color: #3d8060;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.kv span {
-  font-size: 13px;
-  color: #b8d4b8;
-}
-.kv.full { grid-column: span 2; }
+.kv.full { grid-column:span 2; }
+.kv label { display:block; font-size:9px; letter-spacing:0.2em; color:#2d6045; text-transform:uppercase; margin-bottom:4px; }
+.kv span  { font-size:12px; color:#a8c8a8; line-height:1.5; }
+.kv span.hi { color:#c8e0c8; }
 
 .process-box {
-  background: rgba(78,204,163,0.05);
-  border: 1px solid rgba(78,204,163,0.1);
-  border-radius: 4px;
-  padding: 10px 14px;
-  font-size: 12px;
-  color: #a8c8a8;
-  line-height: 1.6;
+  background:rgba(78,204,163,0.04);
+  border:1px solid rgba(78,204,163,0.1);
+  border-radius:3px;
+  padding:10px 12px;
+  font-size:12px; color:#9ab8a0; line-height:1.7;
 }
 
 .mem-block {
-  background: rgba(78,204,163,0.04);
-  border: 1px solid rgba(78,204,163,0.12);
-  border-radius: 6px;
-  padding: 14px 16px;
+  background:rgba(78,204,163,0.04);
+  border:1px solid rgba(78,204,163,0.12);
+  border-radius:4px;
+  padding:12px 14px;
+  margin-top:0;
 }
 .mem-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 7px 0;
-  border-bottom: 1px solid rgba(78,204,163,0.07);
+  display:flex; justify-content:space-between; align-items:baseline;
+  padding:6px 0;
+  border-bottom:1px solid rgba(78,204,163,0.07);
 }
-.mem-row:last-child { border-bottom: none; }
-.mem-row .ml { font-size: 9px; letter-spacing: 0.15em; color: #3d8060; text-transform: uppercase; }
-.mem-row .mr { font-size: 12px; color: #b8d4b8; max-width: 60%; text-align: right; }
+.mem-row:last-child { border-bottom:none; }
+.mem-row .ml { font-size:9px; letter-spacing:0.15em; color:#2d6045; text-transform:uppercase; }
+.mem-row .mr { font-size:12px; color:#a8c8a8; max-width:65%; text-align:right; }
 
-.no-mem {
-  font-size: 11px;
-  color: #3d6050;
-  font-style: italic;
-  padding: 8px 0;
+.opp-block {
+  background:rgba(232,193,109,0.04);
+  border:1px solid rgba(232,193,109,0.12);
+  border-radius:4px;
+  padding:14px;
 }
+.opp-row {
+  display:flex; justify-content:space-between; align-items:baseline;
+  padding:6px 0;
+  border-bottom:1px solid rgba(232,193,109,0.06);
+}
+.opp-row:last-child { border-bottom:none; }
+.opp-row .ol { font-size:9px; letter-spacing:0.15em; color:#7a6030; text-transform:uppercase; }
+.opp-row .or { font-size:12px; color:#c8a860; max-width:65%; text-align:right; }
+.opp-row .or.wide { max-width:100%; text-align:left; color:#b09858; line-height:1.5; font-size:11px; }
 
-.owner-row {
-  display: flex; align-items: center; gap: 10px; padding-top: 2px;
+.follow-block {
+  background:rgba(78,204,163,0.03);
+  border:1px solid rgba(78,204,163,0.1);
+  border-radius:4px;
+  padding:12px 14px;
 }
-.owner-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: #4ecca3;
-  flex-shrink: 0;
+.follow-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:5px 0;
+  border-bottom:1px solid rgba(78,204,163,0.06);
 }
-.owner-name { font-size: 12px; color: #7a9a8a; line-height: 1.4; }
+.follow-row:last-child { border-bottom:none; }
+.follow-row .fl { font-size:9px; letter-spacing:0.15em; color:#2d6045; text-transform:uppercase; }
+.follow-row .fr { font-size:12px; color:#8ab8a0; }
 
-/* ── Legend ── */
+/* completeness */
+.complete-wrap { margin:20px 0 16px; }
+.complete-hd { display:flex; justify-content:space-between; margin-bottom:6px; }
+.complete-label { font-size:9px; letter-spacing:0.25em; color:#2d6045; text-transform:uppercase; }
+.complete-pct { font-size:11px; color:#4ecca3; }
+.complete-bar { height:3px; background:rgba(78,204,163,0.12); border-radius:2px; }
+.complete-fill { height:100%; border-radius:2px; background:linear-gradient(90deg, #2d8060, #4ecca3); transition:width 0.6s ease; }
+
+/* buttons */
+.card-btns { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
+.btn-outline {
+  font-size:10px; letter-spacing:0.15em;
+  padding:10px 0; text-align:center;
+  border:1px solid rgba(78,204,163,0.25);
+  color:#4a8a6a; cursor:pointer;
+  background:transparent;
+  font-family:inherit;
+  border-radius:2px;
+  transition:all 0.2s;
+}
+.btn-outline:hover { border-color:#4ecca3; color:#4ecca3; background:rgba(78,204,163,0.05); }
+.btn-solid {
+  font-size:10px; letter-spacing:0.15em;
+  padding:10px 0; text-align:center;
+  border:1px solid rgba(78,204,163,0.5);
+  color:#4ecca3; cursor:pointer;
+  background:rgba(78,204,163,0.08);
+  font-family:inherit;
+  border-radius:2px;
+  transition:all 0.2s;
+}
+.btn-solid:hover { background:rgba(78,204,163,0.15); }
+
+/* ── LEGEND ── */
 .legend {
-  position: fixed;
-  bottom: 36px; left: 36px;
-  z-index: 1000;
-  background: rgba(8,15,13,0.85);
-  border: 1px solid rgba(78,204,163,0.14);
-  backdrop-filter: blur(12px);
-  padding: 16px 20px;
-  pointer-events: none;
+  position:fixed; bottom:28px; left:20px; z-index:800;
+  background:rgba(8,15,13,0.88);
+  border:1px solid rgba(78,204,163,0.13);
+  backdrop-filter:blur(10px);
+  padding:14px 18px;
+  pointer-events:none;
 }
-.legend-title {
-  font-size: 9px; letter-spacing: 0.3em;
-  color: #4ecca3; text-transform: uppercase;
-  margin-bottom: 12px;
-}
-.li {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 8px;
-}
-.li:last-child { margin-bottom: 0; }
-.li-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  border: 2px solid;
-  flex-shrink: 0;
-}
-.li-label { font-size: 11px; color: #7a9a8a; }
+.legend-title { font-size:9px; letter-spacing:0.3em; color:#3d8060; text-transform:uppercase; margin-bottom:10px; }
+.li { display:flex; align-items:center; gap:9px; margin-bottom:7px; }
+.li:last-child { margin-bottom:0; }
+.li-dot { width:10px; height:10px; border-radius:50%; border:2px solid; flex-shrink:0; }
+.li-label { font-size:11px; color:#6a8a7a; }
 
-/* ── Custom Markers ── */
-.mk-wrap {
-  position: relative;
-  width: 30px; height: 30px;
-  display: flex; align-items: center; justify-content: center;
-}
-.mk-pulse {
-  position: absolute;
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  animation: pulse 3s ease-out infinite;
-  pointer-events: none;
-}
-.mk-pulse2 {
-  position: absolute;
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  animation: pulse 3s ease-out infinite 1.2s;
-  pointer-events: none;
-}
-.mk-core {
-  width: 11px; height: 11px;
-  border-radius: 50%;
-  border: 2px solid;
-  background: rgba(8,15,13,0.75);
-  position: relative; z-index: 2;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.mk-core:hover, .mk-core.active {
-  transform: scale(1.6);
-}
+/* ── MARKERS ── */
+.mk { position:relative; width:34px; height:34px; display:flex; align-items:center; justify-content:center; }
+.mk-r1 { position:absolute; width:32px; height:32px; border-radius:50%; animation:pulse 3s ease-out infinite; pointer-events:none; }
+.mk-r2 { position:absolute; width:32px; height:32px; border-radius:50%; animation:pulse 3s ease-out infinite 1.3s; pointer-events:none; }
+.mk-c  { width:12px; height:12px; border-radius:50%; border:2px solid; background:rgba(8,15,13,0.8); position:relative; z-index:2; transition:transform 0.2s; }
+.mk-c.big { width:15px; height:15px; }
+.mk-c.sm  { width:10px; height:10px; }
+.mk-c:hover, .mk-c.act { transform:scale(1.7); }
 @keyframes pulse {
-  0%   { transform: scale(0.4); opacity: 0.6; }
-  100% { transform: scale(2.4); opacity: 0; }
+  0%   { transform:scale(0.3); opacity:0.7; }
+  100% { transform:scale(2.6); opacity:0; }
 }
+.no-pulse .mk-r1, .no-pulse .mk-r2 { display:none; }
 
-/* Leaflet branding */
-.leaflet-control-attribution {
-  background: rgba(8,15,13,0.7) !important;
-  color: #3d6050 !important;
-  font-size: 9px !important;
-}
-.leaflet-control-attribution a { color: #4a8a6a !important; }
-.leaflet-control-zoom a {
-  background: rgba(8,15,13,0.85) !important;
-  color: #4ecca3 !important;
-  border-color: rgba(78,204,163,0.2) !important;
-}
-.leaflet-control-zoom a:hover {
-  background: rgba(78,204,163,0.1) !important;
-}
+/* leaflet overrides */
+.leaflet-control-attribution { background:rgba(8,15,13,0.75)!important; color:#2d5040!important; font-size:9px!important; }
+.leaflet-control-attribution a { color:#3d7055!important; }
+.leaflet-control-zoom a { background:rgba(8,15,13,0.88)!important; color:#4ecca3!important; border-color:rgba(78,204,163,0.2)!important; }
+.leaflet-control-zoom a:hover { background:rgba(78,204,163,0.1)!important; }
 </style>
 </head>
 <body>
 
-<div class="hdr">
-  <h1>台湾水务</h1>
-  <p>Water Infrastructure · Distribution Map</p>
-</div>
-<div class="count-chip">10 FACILITIES</div>
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo">
+    <h1>台湾水务</h1>
+    <p>Water Intelligence Map</p>
+  </div>
+  <div class="bar-divider"></div>
 
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="searchInput" placeholder="搜索项目 / 业主 / 区域…">
+  </div>
+
+  <select class="f-sel" id="typeFilter">
+    <option value="">全部类型</option>
+    <option>市政饮用水厂</option>
+    <option>市政再生水厂</option>
+    <option>海水淡化厂</option>
+    <option>市政污水厂</option>
+  </select>
+
+  <select class="f-sel" id="regionFilter">
+    <option value="">全部区域</option>
+    <option>北部</option>
+    <option>中部</option>
+    <option>南部</option>
+    <option>东部</option>
+    <option>离岛</option>
+  </select>
+
+  <select class="f-sel" id="statusFilter">
+    <option value="">全部状态</option>
+    <option>已运营</option>
+    <option>施工中</option>
+    <option>规划中</option>
+    <option>改造中</option>
+    <option>试运行</option>
+    <option>招标中</option>
+  </select>
+
+  <div class="bar-divider"></div>
+
+  <div class="level-group">
+    <div class="lvl-chip lvl-S on" data-lvl="S">S级</div>
+    <div class="lvl-chip lvl-A on" data-lvl="A">A级</div>
+    <div class="lvl-chip lvl-B on" data-lvl="B">B级</div>
+    <div class="lvl-chip lvl-C on" data-lvl="C">C级</div>
+  </div>
+
+  <div class="bar-divider"></div>
+
+  <select class="f-sel" id="memFilter">
+    <option value="">膜技术（全部）</option>
+    <option value="yes">涉及膜技术</option>
+    <option value="no">未涉及膜技术</option>
+  </select>
+
+  <div class="count-chip" id="countChip">10 个项目</div>
+</div>
+
+<!-- MAP -->
 <div id="map"></div>
 
+<!-- CARD -->
 <div id="card">
-  <div class="card-inner">
-    <button class="card-close" onclick="closeCard()">✕</button>
-    <div id="card-body"></div>
-  </div>
+  <button class="card-close" onclick="closeCard()">✕</button>
+  <div class="card-inner" id="cardBody"></div>
 </div>
 
+<!-- LEGEND -->
 <div class="legend">
-  <div class="legend-title">设施类型</div>
-  <div class="li"><div class="li-dot" style="border-color:#4ecca3"></div><div class="li-label">市政饮用水厂</div></div>
-  <div class="li"><div class="li-dot" style="border-color:#7ec8a0"></div><div class="li-label">市政再生水厂</div></div>
-  <div class="li"><div class="li-dot" style="border-color:#e8c16d"></div><div class="li-label">海水淡化厂</div></div>
+  <div class="legend-title">机会等级</div>
+  <div class="li"><div class="li-dot" style="border-color:#e8c16d"></div><div class="li-label">S 级 — 战略重点</div></div>
+  <div class="li"><div class="li-dot" style="border-color:#4ecca3"></div><div class="li-label">A 级 — 重点跟进</div></div>
+  <div class="li"><div class="li-dot" style="border-color:#93c5fd"></div><div class="li-label">B 级 — 常规关注</div></div>
+  <div class="li"><div class="li-dot" style="border-color:#8a9a8a"></div><div class="li-label">C 级 — 储备观察</div></div>
 </div>
 
 <script>
-const TYPE_COLOR = {
-  '市政饮用水厂': '#4ecca3',
-  '市政再生水厂': '#7ec8a0',
-  '海水淡化厂':   '#e8c16d',
-  '市政污水厂':   '#9b8ec4',
-};
-
-const STATUS_CLASS = {
-  '已运营': 'b-active',
-  '施工中': 'b-build',
-  '规划中': 'b-plan',
-  '改造中': 'b-reno',
-  '试运行': 'b-trial',
-  '招标中': 'b-bid',
-};
+// ────────────────────────────
+//  DATA
+// ────────────────────────────
+const LEVEL_COLOR = { S:'#e8c16d', A:'#4ecca3', B:'#93c5fd', C:'#8a9a8a', '—':'#5a6a5a' };
+const STATUS_CLS  = { '已运营':'b-active','施工中':'b-build','规划中':'b-plan','改造中':'b-reno','试运行':'b-trial','招标中':'b-bid' };
 
 const plants = [
   {
-    name: '直潭净水场',
-    type: '市政饮用水厂',
-    region: '新北市 新店区',
-    status: '已运营',
-    capacity: '4,360,000 CMD',
-    opYear: '—',
-    process: '传统处理（混凝沉淀 + 快滤）+ AI 智能加药',
-    hasMem: false,
-    memType: '',
-    memBrand: '',
-    memModel: '',
-    owner: '台北自来水事业处',
-    lat: 24.958, lng: 121.549,
+    name:'直潭净水场', type:'市政饮用水厂', region:'新北市 新店区', bigRegion:'北部',
+    status:'已运营', level:'B', tags:['大型水厂','台北供水体系','传统工艺'],
+    // 基础
+    capacity:'4,360,000 CMD', owner:'台北自来水事业处', opYear:'—',
+    serviceArea:'台北市、新北市部分区域', waterSource:'翡翠水库（地表水）',
+    infoSource:'官方资料',
+    // 技术
+    process:'传统处理（混凝沉淀 + 快滤）+ AI 智能加药',
+    hasMem:false, memType:'—', memBrand:'—', memModel:'—',
+    knownIssues:'大型老厂，深度处理升级需求待评估',
+    entryPoint:'老厂超滤升级示范 / 深度处理方案引入',
+    // 机会
+    relevance:'中', oppType:'进攻型',
+    entryDirection:'推动超滤深度处理示范合作',
+    recommendation:'确认是否有深度处理升级计划，联系台北自来水事业处技术部门进行技术交流',
+    responsiblePerson:'—', currentStage:'基础调研完成', nextStepDate:'2026年6月',
+    followUpStatus:'待开展', updateDate:'2026-05-12', completeness:62,
+    lat:24.958, lng:121.549,
   },
   {
-    name: '长兴净水场',
-    type: '市政饮用水厂',
-    region: '台北市 大安区',
-    status: '已运营',
-    capacity: '644,100 CMD',
-    opYear: '—',
-    process: '传统处理（混凝沉淀 + 快滤）',
-    hasMem: false,
-    memType: '',
-    memBrand: '',
-    memModel: '',
-    owner: '台北自来水事业处',
-    lat: 25.026, lng: 121.553,
+    name:'长兴净水场', type:'市政饮用水厂', region:'台北市 大安区', bigRegion:'北部',
+    status:'已运营', level:'C', tags:['传统工艺','台北市区供水','低优先级'],
+    capacity:'644,100 CMD', owner:'台北自来水事业处', opYear:'—',
+    serviceArea:'台北市南部区域', waterSource:'翡翠水库（地表水）',
+    infoSource:'官方资料',
+    process:'传统处理（混凝沉淀 + 快滤）',
+    hasMem:false, memType:'—', memBrand:'—', memModel:'—',
+    knownIssues:'水质稳定，膜法升级需求较低',
+    entryPoint:'技术交流 / 超滤示范（次要)',
+    relevance:'低', oppType:'储备型',
+    entryDirection:'以技术交流为主，暂不主动推进',
+    recommendation:'低优先级，可作为技术交流场景，暂不投入资源',
+    responsiblePerson:'—', currentStage:'基础调研完成', nextStepDate:'—',
+    followUpStatus:'暂不跟进', updateDate:'2026-05-12', completeness:50,
+    lat:25.026, lng:121.553,
   },
   {
-    name: '台北民生水资源再生中心',
-    type: '市政再生水厂',
-    region: '台北市 松山区',
-    status: '试运行',
-    capacity: '40,000 CMD',
-    opYear: '2024',
-    process: 'MLE + MBR',
-    hasMem: true,
-    memType: 'MBR',
-    memBrand: '需核实',
-    memModel: '—',
-    owner: '台北市政府卫工处',
-    lat: 25.060, lng: 121.567,
+    name:'台北民生水资源再生中心', type:'市政再生水厂', region:'台北市 松山区', bigRegion:'北部',
+    status:'试运行', level:'A', tags:['再生水','MBR已应用','新厂试运行','品牌待确认'],
+    capacity:'40,000 CMD', owner:'台北市政府卫工处', opYear:'2024',
+    serviceArea:'台北市松山区工业用水', waterSource:'市政污水（再生水来源）',
+    infoSource:'新闻资料',
+    process:'MLE + MBR',
+    hasMem:true, memType:'MBR', memBrand:'需核实', memModel:'—',
+    knownIssues:'试运行阶段，MBR膜品牌尚未最终确认',
+    entryPoint:'MBR膜系统供应 / 品牌替换窗口',
+    relevance:'高', oppType:'进攻型',
+    entryDirection:'跟进MBR膜品牌选定进展，寻找技术合作切入机会',
+    recommendation:'尽快确认膜品牌选定情况，与台北市政府卫工处技术团队建立沟通渠道',
+    responsiblePerson:'—', currentStage:'资料待补充', nextStepDate:'2026年5月底',
+    followUpStatus:'资料待补充', updateDate:'2026-05-12', completeness:65,
+    lat:25.060, lng:121.567,
   },
   {
-    name: '桃园北区再生水中心',
-    type: '市政再生水厂',
-    region: '桃园市 芦竹区',
-    status: '已运营',
-    capacity: '40,000 CMD',
-    opYear: '2026',
-    process: 'BioNET + MBR + UF + RO',
-    hasMem: true,
-    memType: 'MBR · UF · RO',
-    memBrand: '待定',
-    memModel: '—',
-    owner: '桃园市政府水务局',
-    lat: 25.073, lng: 121.285,
+    name:'桃园北区再生水中心', type:'市政再生水厂', region:'桃园市 芦竹区', bigRegion:'北部',
+    status:'已运营', level:'S', tags:['再生水','台积电关联','战略型','MBR+UF+RO'],
+    capacity:'40,000 CMD', owner:'桃园市政府水务局', opYear:'2026',
+    serviceArea:'台积电晶圆厂（工业高纯水）', waterSource:'市政污水（再生水来源）',
+    infoSource:'官方资料 / 新闻资料',
+    process:'BioNET + MBR + UF + RO',
+    hasMem:true, memType:'MBR · UF · RO', memBrand:'待定', memModel:'—',
+    knownIssues:'台积电高纯水需求，对膜品质与稳定性要求极高',
+    entryPoint:'膜系统供应 / 进入台积电再生水供应链',
+    relevance:'高', oppType:'战略型',
+    entryDirection:'争取进入台积电再生水供应体系，重点突破MBR或UF膜供应资质',
+    recommendation:'最高优先级。核实膜采购计划与资质要求，联系桃园水务局及台积电采购部门',
+    responsiblePerson:'—', currentStage:'重点跟进', nextStepDate:'2026年5月下旬',
+    followUpStatus:'重点跟进', updateDate:'2026-05-12', completeness:72,
+    lat:25.073, lng:121.285,
   },
   {
-    name: '高雄拷潭净水场',
-    type: '市政饮用水厂',
-    region: '高雄市 大寮区',
-    status: '已运营',
-    capacity: '225,000 CMD',
-    opYear: '2007',
-    process: '传统处理 + UF + LPRO',
-    hasMem: true,
-    memType: 'UF · RO',
-    memBrand: '立升 Litree（UF）',
-    memModel: '—',
-    owner: '台湾自来水公司第七区管理处',
-    lat: 22.600, lng: 120.395,
+    name:'高雄拷潭净水场', type:'市政饮用水厂', region:'高雄市 大寮区', bigRegion:'南部',
+    status:'已运营', level:'S', tags:['立升现场','防守目标','大型饮用水厂','膜老化替换窗口'],
+    capacity:'225,000 CMD', owner:'台湾自来水公司第七区管理处', opYear:'2007',
+    serviceArea:'大高雄大寮、林园等地区', waterSource:'高屏溪（地表水）',
+    infoSource:'企业官网 / 企业公告',
+    process:'传统处理 + UF + LPRO',
+    hasMem:true, memType:'UF · RO', memBrand:'立升 Litree（UF）', memModel:'待确认',
+    knownIssues:'立升UF膜运行约17年，组件面临老化，2025年Q4惠民启动膜清洗',
+    entryPoint:'膜清洗替换窗口 / 立升存量防守',
+    relevance:'高', oppType:'防守型',
+    entryDirection:'跟进膜清洗替换进展，防止竞品介入，同步评估扩容机会',
+    recommendation:'防守最高优先级。确认惠民2025年Q4清洗进展及2026年替换计划，关注招标时间节点',
+    responsiblePerson:'—', currentStage:'重点跟进', nextStepDate:'2026年Q1追踪',
+    followUpStatus:'重点跟进', updateDate:'2026-05-12', completeness:80,
+    lat:22.600, lng:120.395,
   },
   {
-    name: '凤山再生水厂',
-    type: '市政再生水厂',
-    region: '高雄市 凤山区',
-    status: '已运营',
-    capacity: '45,000 CMD',
-    opYear: '2018',
-    process: '二级处理 + UF + RO',
-    hasMem: true,
-    memType: 'UF · RO',
-    memBrand: 'Pentair（UF）/ Toray（RO）',
-    memModel: 'Aqualine / Seaguard',
-    owner: '高雄市政府水利局',
-    lat: 22.628, lng: 120.358,
+    name:'凤山再生水厂', type:'市政再生水厂', region:'高雄市 凤山区', bigRegion:'南部',
+    status:'已运营', level:'A', tags:['再生水','Pentair·Toray现场','进攻机会'],
+    capacity:'45,000 CMD', owner:'高雄市政府水利局', opYear:'2018',
+    serviceArea:'高雄市工业用水（中钢等）', waterSource:'市政污水（再生水来源）',
+    infoSource:'官方资料',
+    process:'二级处理 + UF + RO',
+    hasMem:true, memType:'UF · RO', memBrand:'Pentair（UF）/ Toray（RO）', memModel:'Aqualine / Seaguard',
+    knownIssues:'现有Pentair/Toray膜系统，安装于2018年，约7年运行，部分组件可能进入替换周期',
+    entryPoint:'UF/RO膜替换竞争 / 国产化替代方案',
+    relevance:'高', oppType:'进攻型',
+    entryDirection:'确认膜系统运行状态及替换计划，提出国产化竞标方案',
+    recommendation:'优先核实Pentair/Toray膜的安装年份与运行情况，评估替换窗口期，准备竞品对标方案',
+    responsiblePerson:'—', currentStage:'资料待补充', nextStepDate:'2026年6月',
+    followUpStatus:'资料待补充', updateDate:'2026-05-12', completeness:70,
+    lat:22.628, lng:120.358,
   },
   {
-    name: '临海再生水厂',
-    type: '市政再生水厂',
-    region: '高雄市 小港区',
-    status: '已运营',
-    capacity: '33,000 CMD',
-    opYear: '2021',
-    process: '4段 AO + MBR + RO',
-    hasMem: true,
-    memType: 'MBR · RO',
-    memBrand: '旭化成（MBR）',
-    memModel: 'MUNC 系列',
-    owner: '高雄市政府水利局',
-    lat: 22.563, lng: 120.328,
+    name:'临海再生水厂', type:'市政再生水厂', region:'高雄市 小港区', bigRegion:'南部',
+    status:'已运营', level:'A', tags:['再生水','旭化成MBR','工业再生水','替换机会'],
+    capacity:'33,000 CMD', owner:'高雄市政府水利局', opYear:'2021',
+    serviceArea:'高雄市临海工业区', waterSource:'市政污水（再生水来源）',
+    infoSource:'官方资料',
+    process:'4段 AO + MBR + RO',
+    hasMem:true, memType:'MBR · RO', memBrand:'旭化成（MBR）', memModel:'MUNC 系列',
+    knownIssues:'旭化成MBR（MUNC系列）运行约4年，需关注中期替换节点',
+    entryPoint:'MBR膜替换 / 旭化成竞品替代',
+    relevance:'高', oppType:'进攻型',
+    entryDirection:'跟进旭化成MBR系统运行状态，布局替换节点',
+    recommendation:'核实旭化成MUNC系列安装时间，预估替换周期，提前建立与业主的技术沟通',
+    responsiblePerson:'—', currentStage:'资料待补充', nextStepDate:'2026年6月',
+    followUpStatus:'资料待补充', updateDate:'2026-05-12', completeness:68,
+    lat:22.563, lng:120.328,
   },
   {
-    name: '永康再生水厂',
-    type: '市政再生水厂',
-    region: '台南市 永康区',
-    status: '已运营',
-    capacity: '15,500 CMD',
-    opYear: '2021',
-    process: '二级处理 + UF + RO',
-    hasMem: true,
-    memType: 'UF · RO',
-    memBrand: '未查到',
-    memModel: '—',
-    owner: '台南市政府水利局',
-    lat: 23.047, lng: 120.256,
+    name:'永康再生水厂', type:'市政再生水厂', region:'台南市 永康区', bigRegion:'南部',
+    status:'已运营', level:'A', tags:['再生水','膜品牌未确认','进攻机会'],
+    capacity:'15,500 CMD', owner:'台南市政府水利局', opYear:'2021',
+    serviceArea:'台南市工业用水', waterSource:'市政污水（再生水来源）',
+    infoSource:'官方资料',
+    process:'二级处理 + UF + RO',
+    hasMem:true, memType:'UF · RO', memBrand:'未查到', memModel:'—',
+    knownIssues:'UF/RO膜品牌未知，存在国产化切入机会',
+    entryPoint:'膜品牌替换 / 国产化方案',
+    relevance:'高', oppType:'进攻型',
+    entryDirection:'优先确认膜品牌，评估国产化替代可行性',
+    recommendation:'品牌未确认是进攻窗口，尽快联系业主确认现有膜供应商及替换意向',
+    responsiblePerson:'—', currentStage:'资料待补充', nextStepDate:'2026年6月',
+    followUpStatus:'资料待补充', updateDate:'2026-05-12', completeness:63,
+    lat:23.047, lng:120.256,
   },
   {
-    name: '福田再生水厂',
-    type: '市政再生水厂',
-    region: '台中市 南区',
-    status: '已运营',
-    capacity: '58,000 CMD',
-    opYear: '2026',
-    process: '二级处理 + UF + RO',
-    hasMem: true,
-    memType: 'UF · RO',
-    memBrand: '待定',
-    memModel: '—',
-    owner: '台中市政府水利局',
-    lat: 24.109, lng: 120.668,
+    name:'福田再生水厂', type:'市政再生水厂', region:'台中市 南区', bigRegion:'中部',
+    status:'已运营', level:'B', tags:['再生水','膜品牌待定','台中','近期投运'],
+    capacity:'58,000 CMD', owner:'台中市政府水利局', opYear:'2026',
+    serviceArea:'台中市工业用水', waterSource:'市政污水（再生水来源）',
+    infoSource:'官方资料',
+    process:'二级处理 + UF + RO',
+    hasMem:true, memType:'UF · RO', memBrand:'待定', memModel:'—',
+    knownIssues:'膜品牌尚未确定，采购窗口开放',
+    entryPoint:'UF/RO膜系统供应竞标',
+    relevance:'中高', oppType:'进攻型',
+    entryDirection:'参与膜采购招标，重点竞争UF膜供应',
+    recommendation:'关注招标公告，准备技术方案及资质文件，及时响应投标需求',
+    responsiblePerson:'—', currentStage:'待开展', nextStepDate:'2026年6月关注招标',
+    followUpStatus:'待开展', updateDate:'2026-05-12', completeness:58,
+    lat:24.109, lng:120.668,
   },
   {
-    name: '马公第一海水淡化厂',
-    type: '海水淡化厂',
-    region: '澎湖县 马公市',
-    status: '改造中',
-    capacity: '3,000 CMD',
-    opYear: '—',
-    process: '前置自清洗滤网 + RO',
-    hasMem: true,
-    memType: 'RO · 自动清洗滤网',
-    memBrand: 'Amiad（滤网）',
-    memModel: '8" ABF6000',
-    owner: '台湾自来水公司第七区管理处',
-    lat: 23.565, lng: 119.563,
+    name:'马公第一海水淡化厂', type:'海水淡化厂', region:'澎湖县 马公市', bigRegion:'离岛',
+    status:'改造中', level:'B', tags:['海水淡化','离岛','改造中','Amiad滤网'],
+    capacity:'3,000 CMD', owner:'台湾自来水公司第七区管理处', opYear:'—',
+    serviceArea:'马公市居民及观光客', waterSource:'澎湖海域（海水）',
+    infoSource:'新闻报道 / 环评资料',
+    process:'前置自清洗滤网 + RO',
+    hasMem:true, memType:'RO · 自动清洗滤网', memBrand:'Amiad（滤网）', memModel:'8" ABF6000',
+    knownIssues:'现已确认Amiad为200μm自清洗滤网（非UF），后端是否需要UF前处理待核实',
+    entryPoint:'RO前处理UF系统引入 / 后端UF需求待确认',
+    relevance:'中', oppType:'进攻型',
+    entryDirection:'核实是否需要UF前处理，评估离岛海淡项目膜供应机会',
+    recommendation:'核实规格书要求，确认UF膜前处理需求后再决定是否投入资源',
+    responsiblePerson:'—', currentStage:'资料待补充', nextStepDate:'2026年7月',
+    followUpStatus:'资料待补充', updateDate:'2026-05-12', completeness:60,
+    lat:23.565, lng:119.563,
   },
 ];
 
-// Map init
-const map = L.map('map', {
-  center: [23.6, 120.8],
-  zoom: 8,
-  zoomControl: true,
-});
-
+// ────────────────────────────
+//  MAP INIT
+// ────────────────────────────
+const map = L.map('map', { center:[23.6, 120.6], zoom:8 });
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
-  subdomains: 'abcd',
-  maxZoom: 19,
+  attribution:'© OpenStreetMap contributors © CARTO',
+  subdomains:'abcd', maxZoom:19,
 }).addTo(map);
 
+// ────────────────────────────
+//  MARKERS
+// ────────────────────────────
 let activeMarker = null;
+const markerObjs = [];
 
-function makeIcon(plant) {
-  const color = TYPE_COLOR[plant.type] || '#4ecca3';
+function makeIcon(p) {
+  const c = LEVEL_COLOR[p.level] || '#5a6a5a';
+  const big  = p.level === 'S';
+  const noPulse = (p.level === 'C' || p.level === '—');
+  const coreClass = `mk-c${big ? ' big' : ''}`;
   const html = `
-    <div class="mk-wrap">
-      <div class="mk-pulse" style="border:1px solid ${color}55;background:${color}08"></div>
-      <div class="mk-pulse2" style="border:1px solid ${color}33;background:transparent"></div>
-      <div class="mk-core" style="border-color:${color};box-shadow:0 0 8px ${color}50"></div>
+    <div class="mk${noPulse ? ' no-pulse' : ''}">
+      <div class="mk-r1" style="border:1px solid ${c}44;background:${c}08"></div>
+      <div class="mk-r2" style="border:1px solid ${c}22"></div>
+      <div class="${coreClass}" style="border-color:${c};box-shadow:0 0 ${big?'10':'6'}px ${c}60"></div>
     </div>`;
-  return L.divIcon({
-    html,
-    className: '',
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-  });
+  return L.divIcon({ html, className:'', iconSize:[34,34], iconAnchor:[17,17] });
 }
 
+plants.forEach((p, i) => {
+  const m = L.marker([p.lat, p.lng], { icon: makeIcon(p) }).addTo(map);
+  m.on('click', () => openCard(p, m));
+  markerObjs.push({ marker:m, plant:p, visible:true });
+});
+
+// ────────────────────────────
+//  CARD
+// ────────────────────────────
 function statusBadge(s) {
-  const cls = STATUS_CLASS[s] || 'b-active';
-  return `<span class="badge ${cls}">${s}</span>`;
+  return `<span class="badge ${STATUS_CLS[s]||'b-active'}">${s}</span>`;
 }
-
+function levelBadge(l) {
+  return `<span class="badge b-lvl-${l}">${l} 级</span>`;
+}
 function typeBadge(t) {
-  const color = TYPE_COLOR[t] || '#4ecca3';
-  return `<span class="badge" style="background:${color}12;color:${color};border:1px solid ${color}40">${t}</span>`;
+  return `<span class="badge" style="background:rgba(78,204,163,0.08);color:#5aaa80;border:1px solid rgba(78,204,163,0.25)">${t}</span>`;
 }
 
 function renderCard(p) {
-  const mem = p.hasMem
+  const memSection = p.hasMem
     ? `<div class="mem-block">
-         <div class="mem-row"><span class="ml">膜技术类型</span><span class="mr">${p.memType || '—'}</span></div>
-         <div class="mem-row"><span class="ml">膜品牌</span><span class="mr">${p.memBrand || '—'}</span></div>
-         <div class="mem-row"><span class="ml">膜型号</span><span class="mr">${p.memModel || '—'}</span></div>
+        <div class="mem-row"><span class="ml">膜技术类型</span><span class="mr">${p.memType||'—'}</span></div>
+        <div class="mem-row"><span class="ml">现有膜品牌</span><span class="mr">${p.memBrand||'—'}</span></div>
+        <div class="mem-row"><span class="ml">膜组件型号</span><span class="mr">${p.memModel||'—'}</span></div>
        </div>`
-    : `<p class="no-mem">本项目暂未涉及膜技术</p>`;
+    : `<div style="font-size:11px;color:#2d6045;font-style:italic;padding:6px 0">暂未发现膜技术应用</div>`;
 
   return `
-    <div class="c-eyebrow">${p.region}</div>
+    <div class="c-loc">${p.region}</div>
     <div class="c-name">${p.name}</div>
-    <div class="c-badges">${typeBadge(p.type)}${statusBadge(p.status)}</div>
+    <div class="c-badges">
+      ${typeBadge(p.type)}${statusBadge(p.status)}${p.level!=='—'?levelBadge(p.level):''}
+    </div>
+    <div class="c-tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
 
-    <div class="sec-label">基本信息</div>
-    <div class="kv-grid">
-      <div class="kv">
-        <label>处理规模</label>
-        <span>${p.capacity}</span>
+    <!-- 基础信息 -->
+    <div class="sec">
+      <div class="sec-hd">基础信息</div>
+      <div class="kv-grid">
+        <div class="kv"><label>处理规模</label><span class="hi">${p.capacity}</span></div>
+        <div class="kv"><label>投运时间</label><span>${p.opYear}</span></div>
+        <div class="kv full"><label>业主单位</label><span>${p.owner}</span></div>
+        <div class="kv full"><label>服务区域</label><span>${p.serviceArea}</span></div>
+        <div class="kv"><label>水源类型</label><span>${p.waterSource}</span></div>
+        <div class="kv"><label>信息来源</label><span>${p.infoSource}</span></div>
       </div>
-      <div class="kv">
-        <label>投运时间</label>
-        <span>${p.opYear}</span>
+    </div>
+
+    <!-- 技术与工艺 -->
+    <div class="sec">
+      <div class="sec-hd">技术与工艺</div>
+      <div class="kv" style="margin-bottom:10px">
+        <label>工艺路线</label>
+        <div class="process-box">${p.process}</div>
       </div>
-      <div class="kv full">
-        <label>业主单位</label>
-        <div class="owner-row">
-          <div class="owner-dot"></div>
-          <div class="owner-name">${p.owner}</div>
+      <div class="kv" style="margin-bottom:10px">
+        <label>膜技术应用</label>
+        ${memSection}
+      </div>
+      <div class="kv-grid">
+        <div class="kv full"><label>已知问题</label><span>${p.knownIssues}</span></div>
+        <div class="kv full"><label>潜在切入点</label><span class="hi">${p.entryPoint}</span></div>
+      </div>
+    </div>
+
+    <!-- 机会判断 -->
+    <div class="sec">
+      <div class="sec-hd">机会判断</div>
+      <div class="opp-block">
+        <div class="opp-row"><span class="ol">相关性</span><span class="or">${p.relevance}</span></div>
+        <div class="opp-row"><span class="ol">机会类型</span><span class="or">${p.oppType}</span></div>
+        <div class="opp-row" style="flex-direction:column;gap:4px;align-items:flex-start">
+          <span class="ol">切入方向</span><span class="or wide">${p.entryDirection}</span>
+        </div>
+        <div class="opp-row" style="flex-direction:column;gap:4px;align-items:flex-start">
+          <span class="ol">推荐动作</span><span class="or wide">${p.recommendation}</span>
         </div>
       </div>
     </div>
 
-    <hr class="divider">
-    <div class="sec-label">工艺路线</div>
-    <div class="process-box">${p.process}</div>
+    <!-- 跟进信息 -->
+    <div class="sec">
+      <div class="sec-hd">跟进信息</div>
+      <div class="follow-block">
+        <div class="follow-row"><span class="fl">负责人</span><span class="fr">${p.responsiblePerson}</span></div>
+        <div class="follow-row"><span class="fl">当前阶段</span><span class="fr">${p.currentStage}</span></div>
+        <div class="follow-row"><span class="fl">下一步时间</span><span class="fr">${p.nextStepDate}</span></div>
+        <div class="follow-row"><span class="fl">跟进状态</span><span class="fr">${p.followUpStatus}</span></div>
+        <div class="follow-row"><span class="fl">资料更新日期</span><span class="fr">${p.updateDate}</span></div>
+      </div>
+    </div>
 
-    <hr class="divider">
-    <div class="sec-label">膜技术应用</div>
-    ${mem}
+    <!-- 资料完整度 -->
+    <div class="complete-wrap">
+      <div class="complete-hd">
+        <span class="complete-label">资料完整度</span>
+        <span class="complete-pct">${p.completeness}%</span>
+      </div>
+      <div class="complete-bar">
+        <div class="complete-fill" style="width:${p.completeness}%"></div>
+      </div>
+    </div>
+
+    <!-- 按钮 -->
+    <div class="card-btns">
+      <button class="btn-outline">查看完整档案</button>
+      <button class="btn-solid">新增跟进记录</button>
+    </div>
   `;
+}
+
+function openCard(p, m) {
+  if (activeMarker && activeMarker !== m) {
+    activeMarker.getElement()?.querySelector('.mk-c')?.classList.remove('act');
+  }
+  activeMarker = m;
+  m.getElement()?.querySelector('.mk-c')?.classList.add('act');
+  document.getElementById('cardBody').innerHTML = renderCard(p);
+  document.getElementById('card').classList.add('open');
+  map.panTo([p.lat, p.lng], { animate:true, duration:0.6 });
 }
 
 function closeCard() {
   document.getElementById('card').classList.remove('open');
   if (activeMarker) {
-    const core = activeMarker.getElement()?.querySelector('.mk-core');
-    if (core) core.classList.remove('active');
+    activeMarker.getElement()?.querySelector('.mk-c')?.classList.remove('act');
     activeMarker = null;
   }
 }
 
-plants.forEach(p => {
-  const marker = L.marker([p.lat, p.lng], { icon: makeIcon(p) }).addTo(map);
+map.on('click', e => {
+  if (e.originalEvent.target.classList.contains('leaflet-container') ||
+      e.originalEvent.target.tagName === 'CANVAS') closeCard();
+});
 
-  marker.on('click', () => {
-    if (activeMarker && activeMarker !== marker) {
-      const prevCore = activeMarker.getElement()?.querySelector('.mk-core');
-      if (prevCore) prevCore.classList.remove('active');
-    }
-    activeMarker = marker;
-    const core = marker.getElement()?.querySelector('.mk-core');
-    if (core) core.classList.add('active');
+// ────────────────────────────
+//  FILTERS
+// ────────────────────────────
+const activeLevels = new Set(['S','A','B','C']);
 
-    document.getElementById('card-body').innerHTML = renderCard(p);
-    document.getElementById('card').classList.add('open');
-
-    map.panTo([p.lat, p.lng], { animate: true, duration: 0.6 });
+document.querySelectorAll('.lvl-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const lvl = chip.dataset.lvl;
+    if (activeLevels.has(lvl)) { activeLevels.delete(lvl); chip.classList.remove('on'); }
+    else                        { activeLevels.add(lvl);    chip.classList.add('on'); }
+    applyFilters();
   });
 });
 
-map.on('click', e => {
-  if (e.originalEvent.target === map.getContainer() ||
-      e.originalEvent.target.tagName === 'CANVAS') {
-    closeCard();
-  }
+['searchInput','typeFilter','regionFilter','statusFilter','memFilter'].forEach(id => {
+  document.getElementById(id).addEventListener('input', applyFilters);
+  document.getElementById(id).addEventListener('change', applyFilters);
 });
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const type   = document.getElementById('typeFilter').value;
+  const region = document.getElementById('regionFilter').value;
+  const status = document.getElementById('statusFilter').value;
+  const mem    = document.getElementById('memFilter').value;
+
+  let count = 0;
+  markerObjs.forEach(({ marker, plant: p }) => {
+    let show = true;
+    if (search && !p.name.includes(search) && !p.region.toLowerCase().includes(search) && !p.owner.toLowerCase().includes(search)) show = false;
+    if (type   && p.type !== type)          show = false;
+    if (region && p.bigRegion !== region)   show = false;
+    if (status && p.status !== status)      show = false;
+    if (activeLevels.size > 0 && !activeLevels.has(p.level)) show = false;
+    if (mem === 'yes' && !p.hasMem)         show = false;
+    if (mem === 'no'  && p.hasMem !== false) show = false;
+
+    if (show) { marker.addTo(map); count++; }
+    else      { map.removeLayer(marker); }
+  });
+
+  document.getElementById('countChip').textContent = `${count} 个项目`;
+}
 </script>
 </body>
 </html>
