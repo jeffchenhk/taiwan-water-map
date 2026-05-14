@@ -6,764 +6,515 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:#080f0d; font-family:'PingFang SC','Microsoft YaHei','Georgia',sans-serif; color:#cdd8cd; overflow:hidden; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#080f0d;font-family:'PingFang SC','Microsoft YaHei',sans-serif;color:#cdd8cd;overflow:hidden}
 
 /* ── TOP BAR ── */
-#topbar {
-  position:fixed; top:0; left:0; right:0; z-index:1000;
-  height:58px;
-  background:rgba(8,15,13,0.95);
-  border-bottom:1px solid rgba(78,204,163,0.15);
-  backdrop-filter:blur(16px);
-  display:flex; align-items:center; gap:10px;
-  padding:0 20px;
-}
-.logo {
-  display:flex; flex-direction:column; justify-content:center;
-  margin-right:12px; flex-shrink:0;
-}
-.logo h1 { font-size:15px; font-weight:400; letter-spacing:0.3em; color:#e2ede2; text-transform:uppercase; white-space:nowrap; }
-.logo p  { font-size:9px; letter-spacing:0.2em; color:#3d8060; text-transform:uppercase; margin-top:2px; }
-.bar-divider { width:1px; height:28px; background:rgba(78,204,163,0.15); flex-shrink:0; }
+#topbar{position:fixed;top:0;left:0;right:0;z-index:1000;height:56px;background:rgba(8,15,13,0.97);border-bottom:1px solid rgba(78,204,163,0.15);backdrop-filter:blur(16px);display:flex;align-items:center;gap:8px;padding:0 16px;flex-shrink:0}
+.logo{display:flex;flex-direction:column;justify-content:center;margin-right:8px;flex-shrink:0}
+.logo h1{font-size:14px;font-weight:400;letter-spacing:.3em;color:#e2ede2;text-transform:uppercase;white-space:nowrap}
+.logo p{font-size:8px;letter-spacing:.2em;color:#3d8060;text-transform:uppercase;margin-top:2px}
+.bdv{width:1px;height:26px;background:rgba(78,204,163,0.15);flex-shrink:0}
+.srch{position:relative;flex-shrink:0}
+.srch input{background:rgba(78,204,163,0.06);border:1px solid rgba(78,204,163,0.18);color:#c8d8c8;font-size:11px;padding:5px 10px 5px 26px;width:160px;outline:none;border-radius:2px;font-family:inherit}
+.srch input::placeholder{color:#3d6050}
+.srch input:focus{border-color:rgba(78,204,163,.4);background:rgba(78,204,163,.08)}
+.srch-ic{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:#3d8060;font-size:11px;pointer-events:none}
+select.fs{background:rgba(78,204,163,0.06);border:1px solid rgba(78,204,163,0.18);color:#a8c8a8;font-size:10px;padding:5px 20px 5px 8px;outline:none;border-radius:2px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%234a8a6a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center;font-family:inherit;flex-shrink:0}
+select.fs:focus{border-color:rgba(78,204,163,.4)}
+select.fs option{background:#0d1f18;color:#c8d8c8}
+.lvl-grp{display:flex;gap:3px;align-items:center;flex-shrink:0}
+.lc{font-size:9px;font-weight:500;padding:3px 8px;border-radius:2px;cursor:pointer;border:1px solid transparent;letter-spacing:.1em;transition:all .2s;opacity:.4}
+.lc.on{opacity:1}
+.lc-S{border-color:#e8c16d55;color:#e8c16d}.lc-S.on{background:rgba(232,193,109,.15);border-color:#e8c16d}
+.lc-A{border-color:#4ecca355;color:#4ecca3}.lc-A.on{background:rgba(78,204,163,.15);border-color:#4ecca3}
+.lc-B{border-color:#93c5fd55;color:#93c5fd}.lc-B.on{background:rgba(147,197,253,.15);border-color:#93c5fd}
+.lc-C{border-color:#8a9a8a55;color:#8a9a8a}.lc-C.on{background:rgba(138,154,138,.15);border-color:#8a9a8a}
+.lc-W{border-color:#5a8a7a55;color:#5a8a7a}.lc-W.on{background:rgba(90,138,122,.15);border-color:#5a8a7a}
+#advBtn{font-size:10px;padding:4px 10px;border:1px solid rgba(78,204,163,0.25);color:#4a8a6a;background:transparent;cursor:pointer;border-radius:2px;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:all .2s}
+#advBtn:hover,#advBtn.on{border-color:#4ecca3;color:#4ecca3;background:rgba(78,204,163,.06)}
+.cnt{margin-left:auto;font-size:10px;letter-spacing:.2em;color:#4ecca3;border:1px solid rgba(78,204,163,.25);padding:4px 10px;white-space:nowrap;flex-shrink:0}
 
-/* search */
-.search-wrap { position:relative; }
-.search-wrap input {
-  background:rgba(78,204,163,0.06);
-  border:1px solid rgba(78,204,163,0.18);
-  color:#c8d8c8;
-  font-size:12px;
-  padding:6px 12px 6px 30px;
-  width:180px;
-  outline:none;
-  border-radius:2px;
-  font-family:inherit;
-}
-.search-wrap input::placeholder { color:#3d6050; }
-.search-wrap input:focus { border-color:rgba(78,204,163,0.45); background:rgba(78,204,163,0.09); }
-.search-icon { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:#3d8060; font-size:12px; pointer-events:none; }
-
-/* selects */
-select.f-sel {
-  background:rgba(78,204,163,0.06);
-  border:1px solid rgba(78,204,163,0.18);
-  color:#a8c8a8;
-  font-size:11px;
-  padding:6px 24px 6px 10px;
-  outline:none;
-  border-radius:2px;
-  cursor:pointer;
-  appearance:none;
-  -webkit-appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a8a6a'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;
-  background-position:right 8px center;
-  font-family:inherit;
-}
-select.f-sel:focus { border-color:rgba(78,204,163,0.45); }
-select.f-sel option { background:#0d1f18; color:#c8d8c8; }
-
-/* level chips */
-.level-group { display:flex; gap:4px; align-items:center; }
-.lvl-chip {
-  font-size:10px; font-weight:500;
-  padding:4px 10px;
-  border-radius:2px;
-  cursor:pointer;
-  border:1px solid transparent;
-  letter-spacing:0.1em;
-  transition:all 0.2s;
-  opacity:0.45;
-}
-.lvl-chip.on { opacity:1; }
-.lvl-S { border-color:#e8c16d55; color:#e8c16d; }
-.lvl-S.on { background:rgba(232,193,109,0.15); border-color:#e8c16d; }
-.lvl-A { border-color:#4ecca355; color:#4ecca3; }
-.lvl-A.on { background:rgba(78,204,163,0.15); border-color:#4ecca3; }
-.lvl-B { border-color:#93c5fd55; color:#93c5fd; }
-.lvl-B.on { background:rgba(147,197,253,0.15); border-color:#93c5fd; }
-.lvl-C { border-color:#8a9a8a55; color:#8a9a8a; }
-.lvl-C.on { background:rgba(138,154,138,0.15); border-color:#8a9a8a; }
-
-.count-chip {
-  margin-left:auto;
-  font-size:10px; letter-spacing:0.2em;
-  color:#4ecca3; border:1px solid rgba(78,204,163,0.25);
-  padding:5px 12px; white-space:nowrap; flex-shrink:0;
-}
+/* ── ADV PANEL ── */
+#adv-panel{position:fixed;top:56px;right:-720px;z-index:999;width:700px;background:rgba(8,15,13,0.98);border:1px solid rgba(78,204,163,0.15);border-top:none;backdrop-filter:blur(20px);padding:16px 20px 18px;transition:right .35s cubic-bezier(.4,0,.2,1)}
+#adv-panel.open{right:0}
+.adv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.adv-item{display:flex;flex-direction:column;gap:4px}
+.adv-item label{font-size:8px;letter-spacing:.25em;color:#3d8060;text-transform:uppercase}
+.adv-item select{width:100%}
 
 /* ── MAP ── */
-#map { position:fixed; top:58px; left:0; right:0; bottom:0; }
+#map{position:fixed;top:56px;left:0;right:0;bottom:0}
 
 /* ── CARD ── */
-#card {
-  position:fixed;
-  top:58px; right:-460px; bottom:0;
-  z-index:900;
-  width:430px;
-  overflow-y:auto;
-  background:rgba(8,15,13,0.96);
-  border-left:1px solid rgba(78,204,163,0.16);
-  backdrop-filter:blur(24px);
-  transition:right 0.5s cubic-bezier(0.4,0,0.2,1);
-  scrollbar-width:thin;
-  scrollbar-color:rgba(78,204,163,0.2) transparent;
-}
-#card.open { right:0; }
-#card::-webkit-scrollbar { width:3px; }
-#card::-webkit-scrollbar-thumb { background:rgba(78,204,163,0.2); }
-.card-inner { padding:28px 28px 40px; }
-
-.card-close {
-  position:absolute; top:16px; right:16px;
-  width:26px; height:26px; cursor:pointer;
-  color:#4a8a6a; font-size:15px;
-  display:flex; align-items:center; justify-content:center;
-  border:1px solid rgba(74,138,106,0.3); border-radius:50%;
-  background:transparent; transition:all 0.2s;
-}
-.card-close:hover { color:#4ecca3; border-color:#4ecca3; }
+#card{position:fixed;top:56px;right:-450px;bottom:0;z-index:900;width:430px;overflow-y:auto;background:rgba(8,15,13,0.97);border-left:1px solid rgba(78,204,163,0.15);backdrop-filter:blur(24px);transition:right .5s cubic-bezier(.4,0,.2,1);scrollbar-width:thin;scrollbar-color:rgba(78,204,163,.2) transparent}
+#card.open{right:0}
+#card::-webkit-scrollbar{width:3px}
+#card::-webkit-scrollbar-thumb{background:rgba(78,204,163,.2)}
+.ci{padding:24px 26px 40px}
+.cc{position:absolute;top:14px;right:14px;width:24px;height:24px;cursor:pointer;color:#4a8a6a;font-size:14px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(74,138,106,.3);border-radius:50%;background:transparent;transition:all .2s}
+.cc:hover{color:#4ecca3;border-color:#4ecca3}
 
 /* card header */
-.c-loc { font-size:9px; letter-spacing:0.3em; color:#3d8060; text-transform:uppercase; margin-bottom:8px; }
-.c-name { font-size:22px; font-weight:300; color:#e2ede2; letter-spacing:0.05em; line-height:1.25; margin-bottom:12px; }
-.c-badges { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
-.badge {
-  font-size:10px; letter-spacing:0.1em;
-  padding:3px 10px; border-radius:20px;
-}
-.b-active  { background:rgba(78,204,163,0.12); color:#4ecca3; border:1px solid rgba(78,204,163,0.35); }
-.b-build   { background:rgba(232,193,109,0.12); color:#e8c16d; border:1px solid rgba(232,193,109,0.35); }
-.b-plan    { background:rgba(147,197,253,0.12); color:#93c5fd; border:1px solid rgba(147,197,253,0.35); }
-.b-reno    { background:rgba(251,146,60,0.12);  color:#fb923c; border:1px solid rgba(251,146,60,0.35); }
-.b-trial   { background:rgba(167,139,250,0.12); color:#a78bfa; border:1px solid rgba(167,139,250,0.35); }
-.b-bid     { background:rgba(232,193,109,0.12); color:#e8c16d; border:1px solid rgba(232,193,109,0.35); }
-.b-lvl-S   { background:rgba(232,193,109,0.15); color:#e8c16d; border:1px solid rgba(232,193,109,0.5); font-weight:600; }
-.b-lvl-A   { background:rgba(78,204,163,0.15);  color:#4ecca3; border:1px solid rgba(78,204,163,0.5);  font-weight:600; }
-.b-lvl-B   { background:rgba(147,197,253,0.15); color:#93c5fd; border:1px solid rgba(147,197,253,0.5); font-weight:600; }
-.b-lvl-C   { background:rgba(138,154,138,0.15); color:#8a9a8a; border:1px solid rgba(138,154,138,0.5); font-weight:600; }
-
-.c-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:18px; }
-.tag {
-  font-size:9px; letter-spacing:0.1em;
-  padding:2px 8px;
-  border:1px solid rgba(78,204,163,0.15);
-  color:#4a7a5a;
-  border-radius:2px;
-}
+.c-loc{font-size:9px;letter-spacing:.3em;color:#3d8060;text-transform:uppercase;margin-bottom:6px}
+.c-name{font-size:20px;font-weight:300;color:#e2ede2;letter-spacing:.04em;line-height:1.25;margin-bottom:4px}
+.c-tc{font-size:11px;color:#4a6a5a;margin-bottom:10px;letter-spacing:.02em}
+.c-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.badge{font-size:9px;letter-spacing:.08em;padding:2px 9px;border-radius:20px}
+.b-active{background:rgba(78,204,163,.12);color:#4ecca3;border:1px solid rgba(78,204,163,.35)}
+.b-build{background:rgba(232,193,109,.12);color:#e8c16d;border:1px solid rgba(232,193,109,.35)}
+.b-plan{background:rgba(147,197,253,.12);color:#93c5fd;border:1px solid rgba(147,197,253,.35)}
+.b-reno{background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.35)}
+.b-trial{background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.35)}
+.b-bid{background:rgba(232,193,109,.12);color:#e8c16d;border:1px solid rgba(232,193,109,.35)}
+.b-island{background:rgba(147,197,253,.1);color:#7ab8f0;border:1px solid rgba(147,197,253,.3)}
+.b-lvS{background:rgba(232,193,109,.15);color:#e8c16d;border:1px solid rgba(232,193,109,.5);font-weight:600}
+.b-lvA{background:rgba(78,204,163,.15);color:#4ecca3;border:1px solid rgba(78,204,163,.5);font-weight:600}
+.b-lvB{background:rgba(147,197,253,.15);color:#93c5fd;border:1px solid rgba(147,197,253,.5);font-weight:600}
+.b-lvC{background:rgba(138,154,138,.15);color:#8a9a8a;border:1px solid rgba(138,154,138,.5);font-weight:600}
+.b-lvW{background:rgba(90,138,122,.12);color:#5a9a8a;border:1px solid rgba(90,138,122,.35)}
+.b-mem-y{background:rgba(78,204,163,.12);color:#4ecca3;border:1px solid rgba(78,204,163,.35)}
+.b-mem-n{background:rgba(138,154,138,.1);color:#8a9a8a;border:1px solid rgba(138,154,138,.3)}
+.b-mem-o{background:rgba(232,193,109,.1);color:#c8a860;border:1px solid rgba(232,193,109,.3)}
+.b-cred-h{background:rgba(78,204,163,.1);color:#4ecca3;border:1px solid rgba(78,204,163,.3)}
+.b-cred-m{background:rgba(232,193,109,.1);color:#c8a860;border:1px solid rgba(232,193,109,.3)}
+.b-cred-l{background:rgba(251,100,60,.1);color:#f08060;border:1px solid rgba(251,100,60,.3)}
 
 /* sections */
-.sec { margin-bottom:20px; }
-.sec-hd {
-  font-size:9px; letter-spacing:0.35em;
-  color:#3d8060; text-transform:uppercase;
-  margin-bottom:12px;
-  display:flex; align-items:center; gap:10px;
-}
-.sec-hd::after { content:''; flex:1; height:1px; background:rgba(78,204,163,0.1); }
-.kv-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.kv { }
-.kv.full { grid-column:span 2; }
-.kv label { display:block; font-size:9px; letter-spacing:0.2em; color:#2d6045; text-transform:uppercase; margin-bottom:4px; }
-.kv span  { font-size:12px; color:#a8c8a8; line-height:1.5; }
-.kv span.hi { color:#c8e0c8; }
-
-.process-box {
-  background:rgba(78,204,163,0.04);
-  border:1px solid rgba(78,204,163,0.1);
-  border-radius:3px;
-  padding:10px 12px;
-  font-size:12px; color:#9ab8a0; line-height:1.7;
-}
-
-.mem-block {
-  background:rgba(78,204,163,0.04);
-  border:1px solid rgba(78,204,163,0.12);
-  border-radius:4px;
-  padding:12px 14px;
-  margin-top:0;
-}
-.mem-row {
-  display:flex; justify-content:space-between; align-items:baseline;
-  padding:6px 0;
-  border-bottom:1px solid rgba(78,204,163,0.07);
-}
-.mem-row:last-child { border-bottom:none; }
-.mem-row .ml { font-size:9px; letter-spacing:0.15em; color:#2d6045; text-transform:uppercase; }
-.mem-row .mr { font-size:12px; color:#a8c8a8; max-width:65%; text-align:right; }
-
-.opp-block {
-  background:rgba(232,193,109,0.04);
-  border:1px solid rgba(232,193,109,0.12);
-  border-radius:4px;
-  padding:14px;
-}
-.opp-row {
-  display:flex; justify-content:space-between; align-items:baseline;
-  padding:6px 0;
-  border-bottom:1px solid rgba(232,193,109,0.06);
-}
-.opp-row:last-child { border-bottom:none; }
-.opp-row .ol { font-size:9px; letter-spacing:0.15em; color:#7a6030; text-transform:uppercase; }
-.opp-row .or { font-size:12px; color:#c8a860; max-width:65%; text-align:right; }
-.opp-row .or.wide { max-width:100%; text-align:left; color:#b09858; line-height:1.5; font-size:11px; }
-
-.follow-block {
-  background:rgba(78,204,163,0.03);
-  border:1px solid rgba(78,204,163,0.1);
-  border-radius:4px;
-  padding:12px 14px;
-}
-.follow-row {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:5px 0;
-  border-bottom:1px solid rgba(78,204,163,0.06);
-}
-.follow-row:last-child { border-bottom:none; }
-.follow-row .fl { font-size:9px; letter-spacing:0.15em; color:#2d6045; text-transform:uppercase; }
-.follow-row .fr { font-size:12px; color:#8ab8a0; }
-
-/* completeness */
-.complete-wrap { margin:20px 0 16px; }
-.complete-hd { display:flex; justify-content:space-between; margin-bottom:6px; }
-.complete-label { font-size:9px; letter-spacing:0.25em; color:#2d6045; text-transform:uppercase; }
-.complete-pct { font-size:11px; color:#4ecca3; }
-.complete-bar { height:3px; background:rgba(78,204,163,0.12); border-radius:2px; }
-.complete-fill { height:100%; border-radius:2px; background:linear-gradient(90deg, #2d8060, #4ecca3); transition:width 0.6s ease; }
-
-/* buttons */
-.card-btns { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
-.btn-outline {
-  font-size:10px; letter-spacing:0.15em;
-  padding:10px 0; text-align:center;
-  border:1px solid rgba(78,204,163,0.25);
-  color:#4a8a6a; cursor:pointer;
-  background:transparent;
-  font-family:inherit;
-  border-radius:2px;
-  transition:all 0.2s;
-}
-.btn-outline:hover { border-color:#4ecca3; color:#4ecca3; background:rgba(78,204,163,0.05); }
-.btn-solid {
-  font-size:10px; letter-spacing:0.15em;
-  padding:10px 0; text-align:center;
-  border:1px solid rgba(78,204,163,0.5);
-  color:#4ecca3; cursor:pointer;
-  background:rgba(78,204,163,0.08);
-  font-family:inherit;
-  border-radius:2px;
-  transition:all 0.2s;
-}
-.btn-solid:hover { background:rgba(78,204,163,0.15); }
+.sec{margin-bottom:16px}
+.sec-hd{font-size:8px;letter-spacing:.35em;color:#3d8060;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-hd::after{content:'';flex:1;height:1px;background:rgba(78,204,163,.1)}
+.sec-hd .tag{font-size:7px;padding:1px 6px;border:1px solid rgba(232,193,109,.4);color:#c8a060;letter-spacing:.1em;border-radius:2px}
+.kv{margin-bottom:8px}
+.kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.kv label{display:block;font-size:8px;letter-spacing:.2em;color:#2d6045;text-transform:uppercase;margin-bottom:3px}
+.kv span{font-size:12px;color:#a8c8a8;line-height:1.5}
+.kv span.hi{color:#c8e0c8}
+.kv.full{grid-column:span 2}
+.process-box{background:rgba(78,204,163,.04);border:1px solid rgba(78,204,163,.1);border-radius:3px;padding:8px 12px;font-size:11px;color:#9ab8a0;line-height:1.7}
+.mem-blk{background:rgba(78,204,163,.03);border:1px solid rgba(78,204,163,.1);border-radius:4px;padding:12px 14px;margin-top:6px}
+.mem-r{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid rgba(78,204,163,.07)}
+.mem-r:last-child{border-bottom:none}
+.mem-r .ml{font-size:8px;letter-spacing:.15em;color:#2d6045;text-transform:uppercase}
+.mem-r .mr{font-size:11px;color:#a8c8a8;max-width:65%;text-align:right}
+.mem-r .mr.wide{max-width:100%;text-align:left;color:#9ab8a0;line-height:1.5;font-size:11px}
+.coll-btn{width:100%;text-align:left;font-size:9px;letter-spacing:.25em;color:#3d8060;text-transform:uppercase;background:transparent;border:none;border-top:1px solid rgba(78,204,163,.1);padding:8px 0;cursor:pointer;font-family:inherit;display:flex;justify-content:space-between;align-items:center}
+.coll-btn:hover{color:#4ecca3}
+.coll-content{display:none}
+.coll-content.open{display:block}
+.opp-blk{background:rgba(232,193,109,.04);border:1px solid rgba(232,193,109,.12);border-radius:4px;padding:12px 14px}
+.opp-r{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid rgba(232,193,109,.07)}
+.opp-r:last-child{border-bottom:none}
+.opp-r .ol{font-size:8px;letter-spacing:.15em;color:#7a6030;text-transform:uppercase}
+.opp-r .or{font-size:11px;color:#c8a860;max-width:65%;text-align:right}
+.opp-r .or.wide{max-width:100%;text-align:left;color:#b09858;line-height:1.5;font-size:11px}
+.warn-box{background:rgba(232,193,109,.05);border:1px solid rgba(232,193,109,.2);border-radius:3px;padding:8px 12px;font-size:11px;color:#b09050;line-height:1.6}
+.src-link{color:#4a8a6a;text-decoration:none;border-bottom:1px solid rgba(74,138,106,.3);font-size:11px}
+.src-link:hover{color:#4ecca3;border-color:#4ecca3}
+.card-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.btn-o{font-size:9px;letter-spacing:.15em;padding:9px 0;text-align:center;border:1px solid rgba(78,204,163,.25);color:#4a8a6a;cursor:pointer;background:transparent;font-family:inherit;border-radius:2px;transition:all .2s}
+.btn-o:hover{border-color:#4ecca3;color:#4ecca3;background:rgba(78,204,163,.05)}
+.btn-s{font-size:9px;letter-spacing:.15em;padding:9px 0;text-align:center;border:1px solid rgba(78,204,163,.45);color:#4ecca3;cursor:pointer;background:rgba(78,204,163,.08);font-family:inherit;border-radius:2px;transition:all .2s}
+.btn-s:hover{background:rgba(78,204,163,.15)}
 
 /* ── LEGEND ── */
-.legend {
-  position:fixed; bottom:28px; left:20px; z-index:800;
-  background:rgba(8,15,13,0.88);
-  border:1px solid rgba(78,204,163,0.13);
-  backdrop-filter:blur(10px);
-  padding:14px 18px;
-  pointer-events:none;
-}
-.legend-title { font-size:9px; letter-spacing:0.3em; color:#3d8060; text-transform:uppercase; margin-bottom:10px; }
-.li { display:flex; align-items:center; gap:9px; margin-bottom:7px; }
-.li:last-child { margin-bottom:0; }
-.li-dot { width:10px; height:10px; border-radius:50%; border:2px solid; flex-shrink:0; }
-.li-label { font-size:11px; color:#6a8a7a; }
+.legend{position:fixed;bottom:24px;left:18px;z-index:800;background:rgba(8,15,13,.88);border:1px solid rgba(78,204,163,.13);backdrop-filter:blur(10px);padding:12px 16px;pointer-events:none}
+.legend-t{font-size:8px;letter-spacing:.3em;color:#3d8060;text-transform:uppercase;margin-bottom:8px}
+.li{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.li:last-child{margin-bottom:0}
+.li-dot{width:9px;height:9px;border-radius:50%;border:2px solid;flex-shrink:0}
+.li-lb{font-size:10px;color:#6a8a7a}
 
 /* ── MARKERS ── */
-.mk { position:relative; width:34px; height:34px; display:flex; align-items:center; justify-content:center; }
-.mk-r1 { position:absolute; width:32px; height:32px; border-radius:50%; animation:pulse 3s ease-out infinite; pointer-events:none; }
-.mk-r2 { position:absolute; width:32px; height:32px; border-radius:50%; animation:pulse 3s ease-out infinite 1.3s; pointer-events:none; }
-.mk-c  { width:12px; height:12px; border-radius:50%; border:2px solid; background:rgba(8,15,13,0.8); position:relative; z-index:2; transition:transform 0.2s; }
-.mk-c.big { width:15px; height:15px; }
-.mk-c.sm  { width:10px; height:10px; }
-.mk-c:hover, .mk-c.act { transform:scale(1.7); }
-@keyframes pulse {
-  0%   { transform:scale(0.3); opacity:0.7; }
-  100% { transform:scale(2.6); opacity:0; }
-}
-.no-pulse .mk-r1, .no-pulse .mk-r2 { display:none; }
+.mk{position:relative;display:flex;align-items:center;justify-content:center}
+.mk-p{position:absolute;border-radius:50%;animation:pulse 3s ease-out infinite;pointer-events:none}
+.mk-p2{position:absolute;border-radius:50%;animation:pulse 3s ease-out infinite 1.3s;pointer-events:none}
+.mk-c{border-radius:50%;border:2px solid;background:rgba(8,15,13,.8);position:relative;z-index:2;transition:transform .2s}
+.mk-c:hover,.mk-c.act{transform:scale(1.8)}
+@keyframes pulse{0%{transform:scale(.3);opacity:.7}100%{transform:scale(2.8);opacity:0}}
 
-/* leaflet overrides */
-.leaflet-control-attribution { background:rgba(8,15,13,0.75)!important; color:#2d5040!important; font-size:9px!important; }
-.leaflet-control-attribution a { color:#3d7055!important; }
-.leaflet-control-zoom a { background:rgba(8,15,13,0.88)!important; color:#4ecca3!important; border-color:rgba(78,204,163,0.2)!important; }
-.leaflet-control-zoom a:hover { background:rgba(78,204,163,0.1)!important; }
+/* leaflet */
+.leaflet-control-attribution{background:rgba(8,15,13,.75)!important;color:#2d5040!important;font-size:8px!important}
+.leaflet-control-attribution a{color:#3d7055!important}
+.leaflet-control-zoom a{background:rgba(8,15,13,.88)!important;color:#4ecca3!important;border-color:rgba(78,204,163,.2)!important}
+.leaflet-control-zoom a:hover{background:rgba(78,204,163,.1)!important}
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
 <div id="topbar">
-  <div class="logo">
-    <h1>台湾水务</h1>
-    <p>Water Intelligence Map</p>
+  <div class="logo"><h1>台湾水务</h1><p>Water Intelligence Map</p></div>
+  <div class="bdv"></div>
+  <div class="srch"><span class="srch-ic">⌕</span><input type="text" id="SI" placeholder="搜索项目 / 业主 / 区域…"></div>
+  <select class="fs" id="typeF"><option value="">全部类型</option><option>市政饮用水厂</option><option>市政再生水厂</option><option>海水淡化厂</option><option>市政污水厂</option></select>
+  <select class="fs" id="provF"><option value="">全部省市</option></select>
+  <select class="fs" id="statusF"><option value="">全部状态</option><option>已运营</option><option>施工中</option><option>规划中</option><option>改造中</option><option>试运行</option><option>招标中</option></select>
+  <select class="fs" id="memF"><option value="">膜技术（全部）</option><option>是</option><option>否</option><option>规划采用</option><option>试点测试</option><option>潜在相关</option><option>未查到</option><option>需核实</option></select>
+  <div class="bdv"></div>
+  <div class="lvl-grp">
+    <div class="lc lc-S on" data-lv="S">S</div>
+    <div class="lc lc-A on" data-lv="A">A</div>
+    <div class="lc lc-B on" data-lv="B">B</div>
+    <div class="lc lc-C on" data-lv="C">C</div>
+    <div class="lc lc-W on" data-lv="待判断">?</div>
   </div>
-  <div class="bar-divider"></div>
-
-  <div class="search-wrap">
-    <span class="search-icon">⌕</span>
-    <input type="text" id="searchInput" placeholder="搜索项目 / 业主 / 区域…">
-  </div>
-
-  <select class="f-sel" id="typeFilter">
-    <option value="">全部类型</option>
-    <option>市政饮用水厂</option>
-    <option>市政再生水厂</option>
-    <option>海水淡化厂</option>
-    <option>市政污水厂</option>
-  </select>
-
-  <select class="f-sel" id="regionFilter">
-    <option value="">全部区域</option>
-    <option>北部</option>
-    <option>中部</option>
-    <option>南部</option>
-    <option>东部</option>
-    <option>离岛</option>
-  </select>
-
-  <select class="f-sel" id="statusFilter">
-    <option value="">全部状态</option>
-    <option>已运营</option>
-    <option>施工中</option>
-    <option>规划中</option>
-    <option>改造中</option>
-    <option>试运行</option>
-    <option>招标中</option>
-  </select>
-
-  <div class="bar-divider"></div>
-
-  <div class="level-group">
-    <div class="lvl-chip lvl-S on" data-lvl="S">S级</div>
-    <div class="lvl-chip lvl-A on" data-lvl="A">A级</div>
-    <div class="lvl-chip lvl-B on" data-lvl="B">B级</div>
-    <div class="lvl-chip lvl-C on" data-lvl="C">C级</div>
-  </div>
-
-  <div class="bar-divider"></div>
-
-  <select class="f-sel" id="memFilter">
-    <option value="">膜技术（全部）</option>
-    <option value="yes">涉及膜技术</option>
-    <option value="no">未涉及膜技术</option>
-  </select>
-
-  <div class="count-chip" id="countChip">10 个项目</div>
+  <div class="bdv"></div>
+  <button id="advBtn">高级筛选 ▾</button>
+  <div class="cnt" id="CC">32 个项目</div>
 </div>
 
-<!-- MAP -->
+<div id="adv-panel">
+  <div class="adv-grid">
+    <div class="adv-item"><label>二级行政区</label><select class="fs" id="cityF" style="width:100%"><option value="">全部</option></select></div>
+    <div class="adv-item"><label>是否离岛</label><select class="fs" id="islandF" style="width:100%"><option value="">全部</option><option>是</option><option>否</option></select></div>
+    <div class="adv-item"><label>膜技术类型</label><select class="fs" id="memTypeF" style="width:100%"><option value="">全部</option><option value="UF">UF</option><option value="RO">RO</option><option value="MBR">MBR</option><option value="NF">NF</option><option value="陶瓷膜">陶瓷膜</option><option value="自动清洗滤网">自动清洗滤网</option></select></div>
+    <div class="adv-item"><label>服务对象/用水端</label><select class="fs" id="svcF" style="width:100%"><option value="">全部</option></select></div>
+    <div class="adv-item"><label>出水用途</label><select class="fs" id="efflF" style="width:100%"><option value="">全部</option></select></div>
+    <div class="adv-item"><label>原水/进水类型</label><select class="fs" id="inflF" style="width:100%"><option value="">全部</option></select></div>
+    <div class="adv-item"><label>信息可信度</label><select class="fs" id="credF" style="width:100%"><option value="">全部</option><option>高</option><option>中</option><option>低</option></select></div>
+    <div class="adv-item"><label>机会类型</label><select class="fs" id="oppTypeF" style="width:100%"><option value="">全部</option><option>战略型</option><option>进攻型</option><option>防守型</option><option>储备型</option><option>待判断</option></select></div>
+    <div class="adv-item"><label>跟进阶段</label><select class="fs" id="stageF" style="width:100%"><option value="">全部</option><option>未开始</option><option>资料待补充</option><option>待开展</option><option>重点跟进</option><option>已初判</option><option>已沟通</option><option>暂不跟进</option></select></div>
+  </div>
+</div>
+
 <div id="map"></div>
 
-<!-- CARD -->
 <div id="card">
-  <button class="card-close" onclick="closeCard()">✕</button>
-  <div class="card-inner" id="cardBody"></div>
+  <button class="cc" onclick="closeCard()">✕</button>
+  <div class="ci" id="CB"></div>
 </div>
 
-<!-- LEGEND -->
 <div class="legend">
-  <div class="legend-title">机会等级</div>
-  <div class="li"><div class="li-dot" style="border-color:#e8c16d"></div><div class="li-label">S 级 — 战略重点</div></div>
-  <div class="li"><div class="li-dot" style="border-color:#4ecca3"></div><div class="li-label">A 级 — 重点跟进</div></div>
-  <div class="li"><div class="li-dot" style="border-color:#93c5fd"></div><div class="li-label">B 级 — 常规关注</div></div>
-  <div class="li"><div class="li-dot" style="border-color:#8a9a8a"></div><div class="li-label">C 级 — 储备观察</div></div>
+  <div class="legend-t">机会等级</div>
+  <div class="li"><div class="li-dot" style="border-color:#e8c16d"></div><div class="li-lb">S — 战略重点</div></div>
+  <div class="li"><div class="li-dot" style="border-color:#4ecca3"></div><div class="li-lb">A — 重点跟进</div></div>
+  <div class="li"><div class="li-dot" style="border-color:#93c5fd"></div><div class="li-lb">B — 常规关注</div></div>
+  <div class="li"><div class="li-dot" style="border-color:#8a9a8a"></div><div class="li-lb">C — 储备观察</div></div>
+  <div class="li"><div class="li-dot" style="border-color:#5a8a7a"></div><div class="li-lb">? — 待判断</div></div>
 </div>
 
 <script>
-// ────────────────────────────
-//  DATA
-// ────────────────────────────
-const LEVEL_COLOR = { S:'#e8c16d', A:'#4ecca3', B:'#93c5fd', C:'#8a9a8a', '—':'#5a6a5a' };
-const STATUS_CLS  = { '已运营':'b-active','施工中':'b-build','规划中':'b-plan','改造中':'b-reno','试运行':'b-trial','招标中':'b-bid' };
-
-const plants = [
-  {
-    name:'直潭净水场', type:'市政饮用水厂', region:'新北市 新店区', bigRegion:'北部',
-    status:'已运营', level:'B', tags:['大型水厂','台北供水体系','传统工艺'],
-    // 基础
-    capacity:'4,360,000 CMD', owner:'台北自来水事业处', opYear:'—',
-    serviceArea:'台北市、新北市部分区域', waterSource:'翡翠水库（地表水）',
-    infoSource:'官方资料',
-    // 技术
-    process:'传统处理（混凝沉淀 + 快滤）+ AI 智能加药',
-    hasMem:false, memType:'—', memBrand:'—', memModel:'—',
-    knownIssues:'大型老厂，深度处理升级需求待评估',
-    entryPoint:'老厂超滤升级示范 / 深度处理方案引入',
-    // 机会
-    relevance:'中', oppType:'进攻型',
-    entryDirection:'推动超滤深度处理示范合作',
-    recommendation:'确认是否有深度处理升级计划，联系台北自来水事业处技术部门进行技术交流',
-    responsiblePerson:'—', currentStage:'基础调研完成', nextStepDate:'2026年6月',
-    followUpStatus:'待开展', updateDate:'2026-05-12', completeness:62,
-    lat:24.958, lng:121.549,
-  },
-  {
-    name:'长兴净水场', type:'市政饮用水厂', region:'台北市 大安区', bigRegion:'北部',
-    status:'已运营', level:'C', tags:['传统工艺','台北市区供水','低优先级'],
-    capacity:'644,100 CMD', owner:'台北自来水事业处', opYear:'—',
-    serviceArea:'台北市南部区域', waterSource:'翡翠水库（地表水）',
-    infoSource:'官方资料',
-    process:'传统处理（混凝沉淀 + 快滤）',
-    hasMem:false, memType:'—', memBrand:'—', memModel:'—',
-    knownIssues:'水质稳定，膜法升级需求较低',
-    entryPoint:'技术交流 / 超滤示范（次要)',
-    relevance:'低', oppType:'储备型',
-    entryDirection:'以技术交流为主，暂不主动推进',
-    recommendation:'低优先级，可作为技术交流场景，暂不投入资源',
-    responsiblePerson:'—', currentStage:'基础调研完成', nextStepDate:'—',
-    followUpStatus:'暂不跟进', updateDate:'2026-05-12', completeness:50,
-    lat:25.026, lng:121.553,
-  },
-  {
-    name:'台北民生水资源再生中心', type:'市政再生水厂', region:'台北市 松山区', bigRegion:'北部',
-    status:'试运行', level:'A', tags:['再生水','MBR已应用','新厂试运行','品牌待确认'],
-    capacity:'40,000 CMD', owner:'台北市政府卫工处', opYear:'2024',
-    serviceArea:'台北市松山区工业用水', waterSource:'市政污水（再生水来源）',
-    infoSource:'新闻资料',
-    process:'MLE + MBR',
-    hasMem:true, memType:'MBR', memBrand:'需核实', memModel:'—',
-    knownIssues:'试运行阶段，MBR膜品牌尚未最终确认',
-    entryPoint:'MBR膜系统供应 / 品牌替换窗口',
-    relevance:'高', oppType:'进攻型',
-    entryDirection:'跟进MBR膜品牌选定进展，寻找技术合作切入机会',
-    recommendation:'尽快确认膜品牌选定情况，与台北市政府卫工处技术团队建立沟通渠道',
-    responsiblePerson:'—', currentStage:'资料待补充', nextStepDate:'2026年5月底',
-    followUpStatus:'资料待补充', updateDate:'2026-05-12', completeness:65,
-    lat:25.060, lng:121.567,
-  },
-  {
-    name:'桃园北区再生水中心', type:'市政再生水厂', region:'桃园市 芦竹区', bigRegion:'北部',
-    status:'已运营', level:'S', tags:['再生水','台积电关联','战略型','MBR+UF+RO'],
-    capacity:'40,000 CMD', owner:'桃园市政府水务局', opYear:'2026',
-    serviceArea:'台积电晶圆厂（工业高纯水）', waterSource:'市政污水（再生水来源）',
-    infoSource:'官方资料 / 新闻资料',
-    process:'BioNET + MBR + UF + RO',
-    hasMem:true, memType:'MBR · UF · RO', memBrand:'待定', memModel:'—',
-    knownIssues:'台积电高纯水需求，对膜品质与稳定性要求极高',
-    entryPoint:'膜系统供应 / 进入台积电再生水供应链',
-    relevance:'高', oppType:'战略型',
-    entryDirection:'争取进入台积电再生水供应体系，重点突破MBR或UF膜供应资质',
-    recommendation:'最高优先级。核实膜采购计划与资质要求，联系桃园水务局及台积电采购部门',
-    responsiblePerson:'—', currentStage:'重点跟进', nextStepDate:'2026年5月下旬',
-    followUpStatus:'重点跟进', updateDate:'2026-05-12', completeness:72,
-    lat:25.073, lng:121.285,
-  },
-  {
-    name:'高雄拷潭净水场', type:'市政饮用水厂', region:'高雄市 大寮区', bigRegion:'南部',
-    status:'已运营', level:'S', tags:['立升现场','防守目标','大型饮用水厂','膜老化替换窗口'],
-    capacity:'225,000 CMD', owner:'台湾自来水公司第七区管理处', opYear:'2007',
-    serviceArea:'大高雄大寮、林园等地区', waterSource:'高屏溪（地表水）',
-    infoSource:'企业官网 / 企业公告',
-    process:'传统处理 + UF + LPRO',
-    hasMem:true, memType:'UF · RO', memBrand:'立升 Litree（UF）', memModel:'待确认',
-    knownIssues:'立升UF膜运行约17年，组件面临老化，2025年Q4惠民启动膜清洗',
-    entryPoint:'膜清洗替换窗口 / 立升存量防守',
-    relevance:'高', oppType:'防守型',
-    entryDirection:'跟进膜清洗替换进展，防止竞品介入，同步评估扩容机会',
-    recommendation:'防守最高优先级。确认惠民2025年Q4清洗进展及2026年替换计划，关注招标时间节点',
-    responsiblePerson:'—', currentStage:'重点跟进', nextStepDate:'2026年Q1追踪',
-    followUpStatus:'重点跟进', updateDate:'2026-05-12', completeness:80,
-    lat:22.600, lng:120.395,
-  },
-  {
-    name:'凤山再生水厂', type:'市政再生水厂', region:'高雄市 凤山区', bigRegion:'南部',
-    status:'已运营', level:'A', tags:['再生水','Pentair·Toray现场','进攻机会'],
-    capacity:'45,000 CMD', owner:'高雄市政府水利局', opYear:'2018',
-    serviceArea:'高雄市工业用水（中钢等）', waterSource:'市政污水（再生水来源）',
-    infoSource:'官方资料',
-    process:'二级处理 + UF + RO',
-    hasMem:true, memType:'UF · RO', memBrand:'Pentair（UF）/ Toray（RO）', memModel:'Aqualine / Seaguard',
-    knownIssues:'现有Pentair/Toray膜系统，安装于2018年，约7年运行，部分组件可能进入替换周期',
-    entryPoint:'UF/RO膜替换竞争 / 国产化替代方案',
-    relevance:'高', oppType:'进攻型',
-    entryDirection:'确认膜系统运行状态及替换计划，提出国产化竞标方案',
-    recommendation:'优先核实Pentair/Toray膜的安装年份与运行情况，评估替换窗口期，准备竞品对标方案',
-    responsiblePerson:'—', currentStage:'资料待补充', nextStepDate:'2026年6月',
-    followUpStatus:'资料待补充', updateDate:'2026-05-12', completeness:70,
-    lat:22.628, lng:120.358,
-  },
-  {
-    name:'临海再生水厂', type:'市政再生水厂', region:'高雄市 小港区', bigRegion:'南部',
-    status:'已运营', level:'A', tags:['再生水','旭化成MBR','工业再生水','替换机会'],
-    capacity:'33,000 CMD', owner:'高雄市政府水利局', opYear:'2021',
-    serviceArea:'高雄市临海工业区', waterSource:'市政污水（再生水来源）',
-    infoSource:'官方资料',
-    process:'4段 AO + MBR + RO',
-    hasMem:true, memType:'MBR · RO', memBrand:'旭化成（MBR）', memModel:'MUNC 系列',
-    knownIssues:'旭化成MBR（MUNC系列）运行约4年，需关注中期替换节点',
-    entryPoint:'MBR膜替换 / 旭化成竞品替代',
-    relevance:'高', oppType:'进攻型',
-    entryDirection:'跟进旭化成MBR系统运行状态，布局替换节点',
-    recommendation:'核实旭化成MUNC系列安装时间，预估替换周期，提前建立与业主的技术沟通',
-    responsiblePerson:'—', currentStage:'资料待补充', nextStepDate:'2026年6月',
-    followUpStatus:'资料待补充', updateDate:'2026-05-12', completeness:68,
-    lat:22.563, lng:120.328,
-  },
-  {
-    name:'永康再生水厂', type:'市政再生水厂', region:'台南市 永康区', bigRegion:'南部',
-    status:'已运营', level:'A', tags:['再生水','膜品牌未确认','进攻机会'],
-    capacity:'15,500 CMD', owner:'台南市政府水利局', opYear:'2021',
-    serviceArea:'台南市工业用水', waterSource:'市政污水（再生水来源）',
-    infoSource:'官方资料',
-    process:'二级处理 + UF + RO',
-    hasMem:true, memType:'UF · RO', memBrand:'未查到', memModel:'—',
-    knownIssues:'UF/RO膜品牌未知，存在国产化切入机会',
-    entryPoint:'膜品牌替换 / 国产化方案',
-    relevance:'高', oppType:'进攻型',
-    entryDirection:'优先确认膜品牌，评估国产化替代可行性',
-    recommendation:'品牌未确认是进攻窗口，尽快联系业主确认现有膜供应商及替换意向',
-    responsiblePerson:'—', currentStage:'资料待补充', nextStepDate:'2026年6月',
-    followUpStatus:'资料待补充', updateDate:'2026-05-12', completeness:63,
-    lat:23.047, lng:120.256,
-  },
-  {
-    name:'福田再生水厂', type:'市政再生水厂', region:'台中市 南区', bigRegion:'中部',
-    status:'已运营', level:'B', tags:['再生水','膜品牌待定','台中','近期投运'],
-    capacity:'58,000 CMD', owner:'台中市政府水利局', opYear:'2026',
-    serviceArea:'台中市工业用水', waterSource:'市政污水（再生水来源）',
-    infoSource:'官方资料',
-    process:'二级处理 + UF + RO',
-    hasMem:true, memType:'UF · RO', memBrand:'待定', memModel:'—',
-    knownIssues:'膜品牌尚未确定，采购窗口开放',
-    entryPoint:'UF/RO膜系统供应竞标',
-    relevance:'中高', oppType:'进攻型',
-    entryDirection:'参与膜采购招标，重点竞争UF膜供应',
-    recommendation:'关注招标公告，准备技术方案及资质文件，及时响应投标需求',
-    responsiblePerson:'—', currentStage:'待开展', nextStepDate:'2026年6月关注招标',
-    followUpStatus:'待开展', updateDate:'2026-05-12', completeness:58,
-    lat:24.109, lng:120.668,
-  },
-  {
-    name:'马公第一海水淡化厂', type:'海水淡化厂', region:'澎湖县 马公市', bigRegion:'离岛',
-    status:'改造中', level:'B', tags:['海水淡化','离岛','改造中','Amiad滤网'],
-    capacity:'3,000 CMD', owner:'台湾自来水公司第七区管理处', opYear:'—',
-    serviceArea:'马公市居民及观光客', waterSource:'澎湖海域（海水）',
-    infoSource:'新闻报道 / 环评资料',
-    process:'前置自清洗滤网 + RO',
-    hasMem:true, memType:'RO · 自动清洗滤网', memBrand:'Amiad（滤网）', memModel:'8" ABF6000',
-    knownIssues:'现已确认Amiad为200μm自清洗滤网（非UF），后端是否需要UF前处理待核实',
-    entryPoint:'RO前处理UF系统引入 / 后端UF需求待确认',
-    relevance:'中', oppType:'进攻型',
-    entryDirection:'核实是否需要UF前处理，评估离岛海淡项目膜供应机会',
-    recommendation:'核实规格书要求，确认UF膜前处理需求后再决定是否投入资源',
-    responsiblePerson:'—', currentStage:'资料待补充', nextStepDate:'2026年7月',
-    followUpStatus:'资料待补充', updateDate:'2026-05-12', completeness:60,
-    lat:23.565, lng:119.563,
-  },
+const PLANTS = [
+  {"id": "待定", "name": "高雄拷潭净水场", "nameTC": "高雄拷潭淨水場", "type": "市政饮用水厂", "province": "高雄市", "city": "大寮区", "location": "大高雄大寮、林园等地区", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "2007", "opTime": "2007", "capacityCMD": "225000", "capacityFutureCMD": "270000", "phased": "否", "phasedNote": "未查到", "serviceTarget": "城市居民;工业园区", "serviceTargetName": "大寮、林园、凤山、小港", "effluent": "饮用水", "waterSource": "高屏溪", "influentType": "地表水;地下水", "waterQualityChallenge": "高浊度;高硬度", "owner": "台湾自来水公司第七区管理处", "regulator": "经济部水利署", "district": "台水第七区", "epc": "金棠科技", "integrator": "金棠科技", "designer": "未查到", "om": "惠民实业", "botCo": "不适用", "memSupplier": "立升 Litree", "others": "惠连薄膜科技", "process": "传统处理 + UF + LPRO", "hasMem": "是", "memType": "UF;RO", "memCombined": "是", "memEnv": "深度处理;RO前处理", "memBrand": "UF：立升(Litree)", "memModel": "未查到", "memMaterial": "PVC", "memForm": "中空纤维", "memPoreSize": "0.02 μm", "memOpTime": "2007", "memRunYears": "约17年", "memRunStatus": "稳定运行多年，组件面临老化", "hasPilot": "否", "investment": "未查到", "procure": "统包工程/委托代操作", "infoSource": "惠民实业公告;金棠科技官网", "infoLink": "https://www.huimin.com.tw/news-inner-582", "sourceType": "企业官网;企业公告", "infoDate": "2023-03-01", "credibility": "高", "notes": "惠民2025年Q4启动膜清洗，替换窗口期需核实", "lat": 22.585, "lng": 120.3842, "oppLevel": "S", "oppType": "防守型", "relevance": "高", "entryPoint": "立升UF膜老化替换窗口，防止竞品介入", "recommendation": "确认惠民2025Q4清洗进展，跟踪2026年替换招标节点", "responsiblePerson": "—", "followStage": "重点跟进", "nextAction": "2026年Q1追踪", "internalNote": ""},
+  {"id": "待定", "name": "高雄翁公园净水场", "nameTC": "高雄翁公園淨水場", "type": "市政饮用水厂", "province": "高雄市", "city": "大寮区", "location": "大寮等周边区域", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "2007", "opTime": "2007", "capacityCMD": "36000", "capacityFutureCMD": "43200", "phased": "否", "phasedNote": "未查到", "serviceTarget": "城市居民", "serviceTargetName": "周边行政区", "effluent": "饮用水", "waterSource": "高屏溪", "influentType": "地表水;地下水", "waterQualityChallenge": "高浊度;高硬度", "owner": "台湾自来水公司第七区管理处", "regulator": "经济部水利署", "district": "台水第七区", "epc": "金棠科技", "integrator": "金棠科技", "designer": "未查到", "om": "惠民实业", "botCo": "不适用", "memSupplier": "立升 Litree", "others": "未查到", "process": "传统处理 + UF + LPRO", "hasMem": "是", "memType": "UF;RO", "memCombined": "是", "memEnv": "深度处理;RO前处理", "memBrand": "UF：立升(Litree)", "memModel": "未查到", "memMaterial": "PVC", "memForm": "中空纤维", "memPoreSize": "0.02 μm", "memOpTime": "2007", "memRunYears": "约17年", "memRunStatus": "与拷潭厂同步，组件面临老化", "hasPilot": "否", "investment": "未查到", "procure": "统包工程/委托代操作", "infoSource": "惠民实业公告", "infoLink": "https://www.huimin.com.tw/news-inner-582", "sourceType": "企业官网;企业公告", "infoDate": "2023-03-01", "credibility": "高", "notes": "同拷潭厂，为立升存量阵地", "lat": 22.6288, "lng": 120.4137, "oppLevel": "S", "oppType": "防守型", "relevance": "高", "entryPoint": "立升UF膜老化替换，与拷潭厂同步防守", "recommendation": "与拷潭厂联动防守，确认替换窗口期", "responsiblePerson": "—", "followStage": "重点跟进", "nextAction": "2026年Q1", "internalNote": ""},
+  {"id": "待定", "name": "丰原一场", "nameTC": "豐原一場", "type": "市政饮用水厂", "province": "台中市", "city": "丰原区", "location": "台中地区", "isIsland": "否", "bigRegion": "中部", "lastVerified": "2026-05-12", "status": "施工中", "buildTime": "2025", "opTime": "未查到", "capacityCMD": "30000", "capacityFutureCMD": "未查到", "phased": "是", "phasedNote": "针对一、二期设施更新", "serviceTarget": "城市居民", "serviceTargetName": "大台中地区", "effluent": "饮用水", "waterSource": "大甲溪", "influentType": "地表水", "waterQualityChallenge": "高浊度", "owner": "台湾自来水公司第四区管理处", "regulator": "经济部水利署", "district": "台水第四区", "epc": "国统国际;建壹营造", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "需核实", "hasMem": "需核实", "memType": "未查到", "memCombined": "需核实", "memEnv": "未查到", "memBrand": "待定", "memModel": "未查到", "memMaterial": "未查到", "memForm": "未查到", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "不适用", "memRunStatus": "未查到", "hasPilot": "否", "investment": "新台币 16.59 亿元", "procure": "公开招标", "infoSource": "国统国际重大信息公告", "infoLink": "https://www.ly.gov.tw/Pages/ashx/File.ashx?FilePath=~/File/Attach/237974/File_19800258.pdf", "sourceType": "企业公告;政府公报", "infoDate": "2025-10-28", "credibility": "高", "notes": "原水浊度挑战大，需核实规格书是否强制要求采用UF膜", "lat": 24.2638, "lng": 120.7413, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "施工中，工艺待确认，关注是否引入膜法", "recommendation": "补充工艺规格信息", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年7月", "internalNote": ""},
+  {"id": "待定", "name": "马公第一海水淡化厂", "nameTC": "馬公第一海水淡化廠", "type": "海水淡化厂", "province": "澎湖县", "city": "马公市", "location": "马公市及湖西乡", "isIsland": "是", "bigRegion": "离岛", "lastVerified": "2026-05-12", "status": "改造中", "buildTime": "2022", "opTime": "未查到", "capacityCMD": "3000", "capacityFutureCMD": "4500", "phased": "是", "phasedNote": "计划将3000CMD机组更新为4500CMD", "serviceTarget": "城市居民;旅游区/离岛", "serviceTargetName": "马公市居民及观光客", "effluent": "海淡供水;饮用水", "waterSource": "澎湖海域", "influentType": "海水", "waterQualityChallenge": "高盐度;缺水保障", "owner": "台湾自来水公司第七区管理处", "regulator": "经济部水利署", "district": "台水第七区", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "前置滤网 + RO", "hasMem": "是", "memType": "RO;自动清洗滤网", "memCombined": "是", "memEnv": "海淡预处理;脱盐处理", "memBrand": "前置过滤：Amiad", "memModel": "8\"ABF6000", "memMaterial": "不锈钢", "memForm": "滤网", "memPoreSize": "200 microns", "memOpTime": "未查到", "memRunYears": "未查到", "memRunStatus": "持续更新机组中", "hasPilot": "否", "investment": "未查到", "procure": "需核实", "infoSource": "环境资讯中心环评报导", "infoLink": "https://e-info.org.tw/node/243362", "sourceType": "新闻报道", "infoDate": "2023", "credibility": "高", "notes": "已确认Amiad为200μm清洗滤网非UF，后端UF需求待核实", "lat": 23.5531, "lng": 119.5852, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "改造中，核实是否需要UF前处理", "recommendation": "核实规格书UF需求后再决定资源投入", "responsiblePerson": "—", "followStage": "资料待补充", "nextAction": "2026年7月", "internalNote": ""},
+  {"id": "待定", "name": "新竹第一净水场", "nameTC": "新竹第一淨水場", "type": "市政饮用水厂", "province": "新竹市", "city": "北区", "location": "新竹地区", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "30000", "capacityFutureCMD": "未查到", "phased": "不适用", "phasedNote": "未查到", "serviceTarget": "城市居民", "serviceTargetName": "新竹市", "effluent": "饮用水", "waterSource": "头前溪", "influentType": "地表水", "waterQualityChallenge": "水量波动大", "owner": "台湾自来水公司第三区管理处", "regulator": "经济部水利署", "district": "台水第三区", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "地球村国际", "process": "传统处理 + 陶瓷膜测试", "hasMem": "试点测试", "memType": "陶瓷膜", "memCombined": "否", "memEnv": "试点测试", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "陶瓷", "memForm": "平板膜", "memPoreSize": "0.1 μm", "memOpTime": "2020", "memRunYears": "不适用", "memRunStatus": "模场Pilot测试阶段结束", "hasPilot": "是", "investment": "未查到", "procure": "不适用", "infoSource": "地球村国际官网案例", "infoLink": "https://www.gve.com.tw/applications/detail/25", "sourceType": "企业官网", "infoDate": "2020", "credibility": "高", "notes": "仅为先期测试，尚未全面更换为膜法", "lat": 24.8105, "lng": 120.9856, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "陶瓷膜试点测试，技术交流机会", "recommendation": "了解陶瓷膜试点进展，评估后续UF升级可能", "responsiblePerson": "—", "followStage": "资料待补充", "nextAction": "2026年7月", "internalNote": ""},
+  {"id": "待定", "name": "台北滨江水资源再生中心", "nameTC": "臺北濱江水資源再生中心", "type": "市政再生水厂", "province": "台北市", "city": "中山区", "location": "松山机场旁", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "施工中", "buildTime": "2025", "opTime": "2030", "capacityCMD": "160000", "capacityFutureCMD": "不适用", "phased": "否", "phasedNote": "未查到", "serviceTarget": "政府公共设施;河道/生态补水", "serviceTargetName": "台北市", "effluent": "再生水回用;达标排放;市政杂用", "waterSource": "市政污水管网", "influentType": "市政污水", "waterQualityChallenge": "未查到", "owner": "台北市政府卫工处", "regulator": "内政部国土管理署", "district": "北水处体系", "epc": "炜盛环科", "integrator": "炜盛环科", "designer": "美商傑明 MWH", "om": "炜盛环科", "botCo": "不适用", "memSupplier": "待定", "others": "未查到", "process": "MLE-MBR", "hasMem": "是", "memType": "MBR", "memCombined": "否", "memEnv": "主处理", "memBrand": "待定", "memModel": "未查到", "memMaterial": "需核实", "memForm": "中空纤维", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "不适用", "memRunStatus": "未查到", "hasPilot": "否", "investment": "新台币 98.88 亿元", "procure": "公开招标", "infoSource": "台北市卫工处公告", "infoLink": "https://www.sso.gov.taipei/News_Content.aspx?n=8F9EC0AE93AD1641&sms=72544237BBE4C5F6&s=A269FD37572B4581", "sourceType": "政府官网;企业公告", "infoDate": "2025-04-24", "credibility": "高", "notes": "MBR膜供应商是否已内定需向炜盛环科核实", "lat": 25.0718, "lng": 121.5367, "oppLevel": "A", "oppType": "进攻型", "relevance": "高", "entryPoint": "大型MBR项目，膜品牌待定，竞标窗口开放", "recommendation": "跟进MBR膜招标进展，联系台北市卫工处技术部门", "responsiblePerson": "—", "followStage": "资料待补充", "nextAction": "2026年6月", "internalNote": ""},
+  {"id": "待定", "name": "台北民生水资源再生中心", "nameTC": "臺北民生水資源再生中心", "type": "市政再生水厂", "province": "台北市", "city": "松山区", "location": "民生社区", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "试运行", "buildTime": "未查到", "opTime": "2024", "capacityCMD": "40000", "capacityFutureCMD": "不适用", "phased": "否", "phasedNote": "产制1万吨再生水", "serviceTarget": "政府公共设施", "serviceTargetName": "民生社区周边公园及松山机场", "effluent": "再生水回用;市政杂用", "waterSource": "民生污水处理厂旧址", "influentType": "市政污水", "waterQualityChallenge": "未查到", "owner": "台北市政府卫工处", "regulator": "内政部国土管理署", "district": "北水处体系", "epc": "联合水业", "integrator": "需核实", "designer": "美商傑明 MWH", "om": "需核实", "botCo": "不适用", "memSupplier": "需核实", "others": "未查到", "process": "MLE+MBR", "hasMem": "是", "memType": "MBR", "memCombined": "否", "memEnv": "主处理", "memBrand": "需核实", "memModel": "未查到", "memMaterial": "需核实", "memForm": "管状中空纤维丝膜", "memPoreSize": "未查到", "memOpTime": "2024", "memRunYears": "不适用", "memRunStatus": "已完成薄膜下水安装", "hasPilot": "否", "investment": "未查到", "procure": "公开招标", "infoSource": "台北市卫工处新闻稿", "infoLink": "https://www.gov.taipei/News_Content.aspx?n=F0DDAF49B89E9413&s=713B1D5D360088CE", "sourceType": "政府官网", "infoDate": "2023-09-18", "credibility": "高", "notes": "全台首座MBR再生中心，品牌需核实", "lat": 25.0645, "lng": 121.5642, "oppLevel": "A", "oppType": "进攻型", "relevance": "高", "entryPoint": "MBR膜品牌需核实，存在进入机会", "recommendation": "尽快确认MBR膜品牌，建立沟通渠道", "responsiblePerson": "—", "followStage": "资料待补充", "nextAction": "2026年6月", "internalNote": ""},
+  {"id": "待定", "name": "凤山再生水厂", "nameTC": "鳳山再生水廠", "type": "市政再生水厂", "province": "高雄市", "city": "凤山区", "location": "临海工业区", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "2016", "opTime": "2018", "capacityCMD": "45000", "capacityFutureCMD": "50200", "phased": "是", "phasedNote": "一期25000，二期增至45000，目标50200", "serviceTarget": "工业园区;单一工业企业", "serviceTargetName": "临海工业区、中钢", "effluent": "再生水回用;工业制程用水", "waterSource": "凤山水资源中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "高有机物", "owner": "高雄市政府水利局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "欣达环工;中鼎", "integrator": "蓝鲸水科技", "designer": "未查到", "om": "蓝鲸水科技", "botCo": "蓝鲸水科技股份有限公司", "memSupplier": "Pentair", "others": "未查到", "process": "二级处理 + UF + RO", "hasMem": "是", "memType": "UF;RO", "memCombined": "是", "memEnv": "再生水核心处理", "memBrand": "UF：Pentair；RO：Toray", "memModel": "Aqualine / Seaguard", "memMaterial": "PES", "memForm": "中空纤维", "memPoreSize": "未查到", "memOpTime": "2018", "memRunYears": "约7年", "memRunStatus": "稳定供水，进入膜首轮更换期", "hasPilot": "否", "investment": "未查到", "procure": "BOT", "infoSource": "水利署再生水专区", "infoLink": "https://www.wra.gov.tw/cp.aspx?n=39096", "sourceType": "政府官网;企业官网", "infoDate": "2026-05-09", "credibility": "高", "notes": "Pentair品牌粘性较强，替换路径需人工突破", "lat": 22.5956, "lng": 120.3541, "oppLevel": "A", "oppType": "进攻型", "relevance": "高", "entryPoint": "Pentair/Toray膜约7年运行，进入替换窗口", "recommendation": "确认膜系统安装年份与运行状态，准备竞品替代方案", "responsiblePerson": "—", "followStage": "资料待补充", "nextAction": "2026年6月", "internalNote": ""},
+  {"id": "待定", "name": "临海再生水厂", "nameTC": "臨海再生水廠", "type": "市政再生水厂", "province": "高雄市", "city": "小港区", "location": "临海工业区", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "2021", "capacityCMD": "33000", "capacityFutureCMD": "60000", "phased": "是", "phasedNote": "当前产水33000，远期达60000", "serviceTarget": "工业园区", "serviceTargetName": "临海工业区(中钢、中油等)", "effluent": "再生水回用;工业制程用水", "waterSource": "临海水资源中心", "influentType": "市政污水", "waterQualityChallenge": "未查到", "owner": "高雄市政府水利局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "中鼎集团;欣达环工", "integrator": "临海水务", "designer": "美商傑明 MWH", "om": "临海水务", "botCo": "临海水务股份有限公司", "memSupplier": "旭化成 Asahi Kasei", "others": "未查到", "process": "4段AO + MBR + RO", "hasMem": "是", "memType": "MBR;RO", "memCombined": "是", "memEnv": "主处理;再生水核心处理", "memBrand": "MBR：旭化成", "memModel": "MUNC系列", "memMaterial": "PVDF", "memForm": "中空纤维", "memPoreSize": "0.1 μm", "memOpTime": "2021", "memRunYears": "约5年", "memRunStatus": "采用旭化成产品，运行稳定", "hasPilot": "否", "investment": "新台币 40.33 亿元", "procure": "BOT", "infoSource": "旭化成官网", "infoLink": "https://www.asahi-kasei.cn/group/microza/pdf/MUNC-Series.pdf", "sourceType": "企业官网", "infoDate": "2021", "credibility": "高", "notes": "短期内无膜更换需求", "lat": 22.5413, "lng": 120.3547, "oppLevel": "A", "oppType": "进攻型", "relevance": "高", "entryPoint": "旭化成MBR约4年运行，关注中期替换节点", "recommendation": "核实旭化成MUNC系列安装时间，预估替换周期", "responsiblePerson": "—", "followStage": "资料待补充", "nextAction": "2026年6月", "internalNote": ""},
+  {"id": "待定", "name": "永康再生水厂", "nameTC": "永康再生水廠", "type": "市政再生水厂", "province": "台南市", "city": "永康区", "location": "南科台南园区", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "2021", "capacityCMD": "15500", "capacityFutureCMD": "20000", "phased": "是", "phasedNote": "二期扩建至20,000已决标", "serviceTarget": "半导体企业", "serviceTargetName": "台积电、联电", "effluent": "再生水回用;工业制程用水", "waterSource": "永康水资源回收中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "台南市政府水利局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "山林水环境工程", "integrator": "山林水环境工程", "designer": "未查到", "om": "山林水环境工程", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "二级处理 + UF + RO", "hasMem": "是", "memType": "UF;RO", "memCombined": "是", "memEnv": "再生水核心处理", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "需核实", "memForm": "未查到", "memPoreSize": "未查到", "memOpTime": "2021", "memRunYears": "约5年", "memRunStatus": "稳定供水", "hasPilot": "否", "investment": "未查到", "procure": "公开招标", "infoSource": "国土署报告", "infoLink": "https://mobile.cmoney.tw/forum/article/178714379", "sourceType": "政府公报;新闻报道", "infoDate": "2024", "credibility": "中", "notes": "一期品牌需核实，二期扩建设备采购窗口需跟进", "lat": 23.0483, "lng": 120.2604, "oppLevel": "A", "oppType": "进攻型", "relevance": "高", "entryPoint": "UF/RO膜品牌未知，国产化切入机会", "recommendation": "优先确认膜品牌，评估国产化替代可行性", "responsiblePerson": "—", "followStage": "资料待补充", "nextAction": "2026年6月", "internalNote": ""},
+  {"id": "待定", "name": "安平再生水厂", "nameTC": "安平再生水廠", "type": "市政再生水厂", "province": "台南市", "city": "安平区", "location": "南科台南园区", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "2023", "capacityCMD": "37500", "capacityFutureCMD": "60000", "phased": "是", "phasedNote": "一期37,500，二期扩建至60,000评选中", "serviceTarget": "半导体企业", "serviceTargetName": "南科高科技产业", "effluent": "再生水回用;工业制程用水", "waterSource": "安平水资源中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "台南市政府水利局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "欣达环工", "integrator": "欣达环工", "designer": "未查到", "om": "欣达环工", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "二级处理 + UF + RO", "hasMem": "是", "memType": "UF;RO", "memCombined": "是", "memEnv": "再生水核心处理", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "需核实", "memForm": "未查到", "memPoreSize": "未查到", "memOpTime": "2023", "memRunYears": "约3年", "memRunStatus": "稳定供水", "hasPilot": "否", "investment": "新台币 72.6 亿元", "procure": "统包工程", "infoSource": "台南市政府新闻稿", "infoLink": "https://www.tainan.gov.tw/News_Content2.aspx?n=4960&s=8792545", "sourceType": "企业官网;政府官网", "infoDate": "2024", "credibility": "高", "notes": "二期扩增招标评选中，存在重大膜采购机会", "lat": 22.9774, "lng": 120.1583, "oppLevel": "A", "oppType": "进攻型", "relevance": "高", "entryPoint": "UF/RO膜品牌未知，进攻机会", "recommendation": "确认膜品牌，联系台南市水利局", "responsiblePerson": "—", "followStage": "资料待补充", "nextAction": "2026年6月", "internalNote": ""},
+  {"id": "待定", "name": "福田再生水厂", "nameTC": "福田再生水廠", "type": "市政再生水厂", "province": "台中市", "city": "南区", "location": "台中港工业区", "isIsland": "否", "bigRegion": "中部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "2026", "capacityCMD": "58000", "capacityFutureCMD": "100000", "phased": "是", "phasedNote": "全期10万CMD", "serviceTarget": "工业园区", "serviceTargetName": "台中港工业区", "effluent": "再生水回用;工业制程用水", "waterSource": "福田水资源中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "台中市政府水利局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "二级处理 + UF + RO", "hasMem": "是", "memType": "UF;RO", "memCombined": "是", "memEnv": "再生水核心处理", "memBrand": "待定", "memModel": "未查到", "memMaterial": "需核实", "memForm": "未查到", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "不适用", "memRunStatus": "2026/05完工转入运营", "hasPilot": "否", "investment": "新台币 158 亿元", "procure": "统包工程", "infoSource": "水利署再生水专区", "infoLink": "https://www.ctee.com.tw/news/20260430700119-439901", "sourceType": "政府官网;新闻报道", "infoDate": "2026-04-30", "credibility": "高", "notes": "设备采购期已过，关注后续维保与更换", "lat": 24.1132, "lng": 120.6558, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "膜品牌待定，采购窗口开放", "recommendation": "关注招标公告，准备技术方案", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年6月关注招标", "internalNote": ""},
+  {"id": "待定", "name": "水湳再生水厂", "nameTC": "水湳再生水廠", "type": "市政再生水厂", "province": "台中市", "city": "西屯区", "location": "中部科学园区台中园区", "isIsland": "否", "bigRegion": "中部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "2024", "capacityCMD": "10500", "capacityFutureCMD": "10500", "phased": "否", "phasedNote": "未查到", "serviceTarget": "半导体企业", "serviceTargetName": "友達光电(AUO)", "effluent": "再生水回用;工业制程用水", "waterSource": "水湳水资源中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "台中市政府水利局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "二级处理 + RO", "hasMem": "是", "memType": "RO", "memCombined": "否", "memEnv": "再生水核心处理", "memBrand": "未知", "memModel": "未查到", "memMaterial": "需核实", "memForm": "卷式膜", "memPoreSize": "未查到", "memOpTime": "2024", "memRunYears": "约2年", "memRunStatus": "稳定向中科供水", "hasPilot": "否", "investment": "未查到", "procure": "未查到", "infoSource": "台中市政府公告", "infoLink": "https://www.taichung.gov.tw/8868/8872/9962/2671415", "sourceType": "政府官网", "infoDate": "2024", "credibility": "中", "notes": "业主对产水率要求高，未明确是否含UF", "lat": 24.1951, "lng": 120.6545, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "RO膜品牌未知，小型项目", "recommendation": "资料补充后评估优先级", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年7月", "internalNote": ""},
+  {"id": "待定", "name": "桃园北区再生水中心", "nameTC": "桃園北區再生水中心", "type": "市政再生水厂", "province": "桃园市", "city": "芦竹区", "location": "观音工业区、桃园炼油厂", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "2022", "opTime": "2026", "capacityCMD": "40000", "capacityFutureCMD": "112000", "phased": "是", "phasedNote": "一、二期完工，三期将扩至112000", "serviceTarget": "工业园区;石化企业", "serviceTargetName": "观音工业区、中油", "effluent": "再生水回用;工业冷却补水", "waterSource": "桃园北区水资源回收中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "桃园市政府水务局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "日胜生;中鼎", "integrator": "宝鼎再生水", "designer": "未查到", "om": "宝鼎再生水", "botCo": "宝鼎再生水股份有限公司", "memSupplier": "待定", "others": "未查到", "process": "BioNET + MBR + UF + RO", "hasMem": "是", "memType": "MBR;UF;RO", "memCombined": "是", "memEnv": "再生水核心处理", "memBrand": "待定", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "2026", "memRunYears": "不适用", "memRunStatus": "2026年4月启用首期", "hasPilot": "否", "investment": "新台币 29.3 亿元", "procure": "BOT", "infoSource": "日胜生法说会简报", "infoLink": "https://www.radium.com.tw/files/%E6%B3%95%E8%AA%AA%E6%9C%83/2025/%E6%97%A5%E5%8B%9D%E7%94%9F%E7%B0%A1%E5%A0%B1%20%202025%20Q3_%E4%B8%AD%E6%96%87.pdf", "sourceType": "企业公告;新闻报道", "infoDate": "2026-04-02", "credibility": "高", "notes": "三期扩增设备采购正酝酿，高度关注中鼎供应链", "lat": 25.0504, "lng": 121.2858, "oppLevel": "S", "oppType": "战略型", "relevance": "高", "entryPoint": "台积电再生水供应链，膜品牌待定是切入窗口", "recommendation": "核实膜采购计划，争取进入台积电供应商资质名单", "responsiblePerson": "—", "followStage": "重点跟进", "nextAction": "2026年5月底", "internalNote": ""},
+  {"id": "待定", "name": "桥头再生水厂", "nameTC": "橋頭再生水廠", "type": "市政再生水厂", "province": "高雄市", "city": "桥头区", "location": "楠梓产业园区(台积电)", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "施工中", "buildTime": "2022", "opTime": "2026", "capacityCMD": "30000", "capacityFutureCMD": "不适用", "phased": "否", "phasedNote": "未查到", "serviceTarget": "半导体企业", "serviceTargetName": "台积电楠梓厂", "effluent": "再生水回用;工业制程用水", "waterSource": "冈山桥头水资源回收中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "高雄市政府水利局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "欣达环工", "integrator": "桥头水务", "designer": "未查到", "om": "桥头水务", "botCo": "桥头水务股份有限公司", "memSupplier": "待定", "others": "未查到", "process": "3段AO + 需核实", "hasMem": "需核实", "memType": "需核实", "memCombined": "需核实", "memEnv": "再生水核心处理", "memBrand": "待定", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "不适用", "memRunStatus": "预计2026年通水", "hasPilot": "否", "investment": "新台币 50 亿元", "procure": "BOT", "infoSource": "欣达环工公告", "infoLink": "https://www.mygonews.com/news/detail?news_id=209407", "sourceType": "新闻报道;企业公告", "infoDate": "2023-05-13", "credibility": "高", "notes": "欣达环工主导，膜采购情况需追踪", "lat": 22.7551, "lng": 120.3052, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "施工中，膜技术待定", "recommendation": "补充工艺信息后评估", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年8月", "internalNote": ""},
+  {"id": "待定", "name": "楠梓再生水厂", "nameTC": "楠梓再生水廠", "type": "市政再生水厂", "province": "高雄市", "city": "楠梓区", "location": "楠梓产业园区(台积电)", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "规划中", "buildTime": "未查到", "opTime": "2028", "capacityCMD": "20000", "capacityFutureCMD": "70000", "phased": "是", "phasedNote": "一期2万，全期7万", "serviceTarget": "半导体企业", "serviceTargetName": "台积电楠梓厂", "effluent": "再生水回用;工业制程用水", "waterSource": "楠梓水资源回收中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "高雄市政府水利局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "待定", "others": "未查到", "process": "拟采用 MBR / UF", "hasMem": "是", "memType": "MBR;UF", "memCombined": "需核实", "memEnv": "再生水核心处理", "memBrand": "待定", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "不适用", "memRunStatus": "二期90亿招商中", "hasPilot": "否", "investment": "约新台币 90 亿元(二期)", "procure": "BOT", "infoSource": "高雄市水利局文件", "infoLink": "https://wrb.kcg.gov.tw/FileDownLoad/FileUpload/20250501143847462909.pdf", "sourceType": "政府公报", "infoDate": "2025", "credibility": "高", "notes": "未来台湾最大单体，需重点跟进统包商花落谁家", "lat": 22.7301, "lng": 120.2852, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "规划中MBR/UF，窗口在招标阶段", "recommendation": "监控规划转招标节点", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年下半年", "internalNote": ""},
+  {"id": "待定", "name": "中坜再生水厂", "nameTC": "中壢再生水廠", "type": "市政再生水厂", "province": "桃园市", "city": "中坜区", "location": "南桃园工业用途", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "施工中", "buildTime": "未查到", "opTime": "2026", "capacityCMD": "22000", "capacityFutureCMD": "156800", "phased": "是", "phasedNote": "目前执行第一期", "serviceTarget": "多类工业企业", "serviceTargetName": "中坜地区周边", "effluent": "再生水回用;工业制程用水", "waterSource": "中坜水资源回收中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "桃园市政府水务局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "中鼎集团;欣达环工", "integrator": "泉鼎水务", "designer": "未查到", "om": "泉鼎水务", "botCo": "泉鼎水务股份有限公司", "memSupplier": "待定", "others": "未查到", "process": "需核实", "hasMem": "需核实", "memType": "需核实", "memCombined": "需核实", "memEnv": "再生水核心处理", "memBrand": "待定", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "不适用", "memRunStatus": "建设高峰期", "hasPilot": "否", "investment": "新台币 74 亿元", "procure": "BOT", "infoSource": "中鼎电子报", "infoLink": "https://www.ctci.com/e-newsletter/CH/454/hot-news/article-06.html", "sourceType": "企业公告", "infoDate": "2024", "credibility": "中", "notes": "由中鼎主导，膜采购窗口需核实", "lat": 24.9851, "lng": 121.2352, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "膜技术待核实，关注招标", "recommendation": "补充工艺信息后再判断", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年7月", "internalNote": ""},
+  {"id": "待定", "name": "客雅再生水厂", "nameTC": "客雅再生水廠", "type": "市政再生水厂", "province": "新竹市", "city": "香山区", "location": "竹科扩建用水", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "招标中", "buildTime": "未查到", "opTime": "2027", "capacityCMD": "15000", "capacityFutureCMD": "42100", "phased": "是", "phasedNote": "一期1.5万", "serviceTarget": "半导体企业", "serviceTargetName": "竹科园区", "effluent": "再生水回用;工业制程用水", "waterSource": "客雅水资源回收中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "新竹市政府水利处", "regulator": "内政部国土管理署", "district": "不适用", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "待定", "others": "未查到", "process": "需核实", "hasMem": "需核实", "memType": "需核实", "memCombined": "需核实", "memEnv": "再生水核心处理", "memBrand": "待定", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "不适用", "memRunStatus": "2026/06截标", "hasPilot": "否", "investment": "新台币 170 亿元", "procure": "BOT", "infoSource": "科学园区管理局公告", "infoLink": "https://www.sipa.gov.tw/", "sourceType": "政府公告", "infoDate": "2026-04-02", "credibility": "高", "notes": "重点标案，膜品牌限制条款待查阅", "lat": 24.7951, "lng": 120.9352, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "招标中，膜技术待定", "recommendation": "持续监控招标公告", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年6月", "internalNote": ""},
+  {"id": "待定", "name": "仁德再生水厂", "nameTC": "仁德再生水廠", "type": "市政再生水厂", "province": "台南市", "city": "仁德区", "location": "工业用途", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "施工中", "buildTime": "未查到", "opTime": "2025", "capacityCMD": "8000", "capacityFutureCMD": "10000", "phased": "否", "phasedNote": "未查到", "serviceTarget": "多类工业企业", "serviceTargetName": "未查到", "effluent": "再生水回用(以水换水)", "waterSource": "仁德水资源回收中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "台南市政府水利局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "欣达环工", "integrator": "未查到", "designer": "未查到", "om": "欣达环工", "botCo": "不适用", "memSupplier": "待定", "others": "未查到", "process": "需核实", "hasMem": "需核实", "memType": "需核实", "memCombined": "需核实", "memEnv": "再生水核心处理", "memBrand": "待定", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "不适用", "memRunStatus": "施工中", "hasPilot": "否", "investment": "未查到", "procure": "统包工程", "infoSource": "水利署再生水专区", "infoLink": "https://www.wra.gov.tw/cp.aspx?n=39096", "sourceType": "政府官网", "infoDate": "2024", "credibility": "中", "notes": "欣达承揽，设备采购细节需核实", "lat": 22.9651, "lng": 120.2452, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "施工中，膜技术待核实", "recommendation": "补充工艺后评估", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年7月", "internalNote": ""},
+  {"id": "待定", "name": "竹北再生水厂", "nameTC": "竹北再生水廠", "type": "市政再生水厂", "province": "新竹县", "city": "竹北市", "location": "竹科半导体", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "施工中", "buildTime": "未查到", "opTime": "2026", "capacityCMD": "10000", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "未查到", "serviceTarget": "半导体企业", "serviceTargetName": "竹科园区", "effluent": "再生水回用;工业制程用水", "waterSource": "竹北水资源回收中心", "influentType": "市政污水;再生水", "waterQualityChallenge": "未查到", "owner": "新竹县政府", "regulator": "内政部国土管理署", "district": "不适用", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "待定", "others": "未查到", "process": "需核实", "hasMem": "需核实", "memType": "需核实", "memCombined": "需核实", "memEnv": "再生水核心处理", "memBrand": "待定", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "不适用", "memRunStatus": "施工中", "hasPilot": "否", "investment": "未查到", "procure": "统包工程", "infoSource": "水利署再生水专区", "infoLink": "https://www.wra.gov.tw/cp.aspx?n=39096", "sourceType": "政府官网", "infoDate": "2024", "credibility": "中", "notes": "可作为新材料测试潜在目标", "lat": 24.8351, "lng": 120.9952, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "施工中，膜技术待核实", "recommendation": "补充工艺后评估", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年7月", "internalNote": ""},
+  {"id": "待定", "name": "坪林污水处理厂", "nameTC": "坪林污水處理廠", "type": "市政污水厂", "province": "新北市", "city": "坪林区", "location": "台北水源特定区", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "未查到", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "未查到", "serviceTarget": "城市居民", "serviceTargetName": "坪林地区", "effluent": "达标排放;河道/生态补水", "waterSource": "翡翠水库上游", "influentType": "市政污水", "waterQualityChallenge": "缺水保障", "owner": "经济部水利署台北水源特定区管理分署", "regulator": "环境部", "district": "不适用", "epc": "翔益营造有限公司", "integrator": "未查到", "designer": "未查到", "om": "翔益营造有限公司", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "A2O双线操作", "hasMem": "否", "memType": "非膜工艺", "memCombined": "不适用", "memEnv": "不适用", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "未查到", "memForm": "未查到", "memPoreSize": "未查到", "memOpTime": "不适用", "memRunYears": "不适用", "memRunStatus": "污泥减量45%", "hasPilot": "否", "investment": "未查到", "procure": "公开招标", "infoSource": "环境部净水永续奖名录", "infoLink": "https://water.moenv.gov.tw/Public/CHT/Issue/SWA_no01.aspx", "sourceType": "政府官网", "infoDate": "2024", "credibility": "高", "notes": "A2O双线操作，未提膜系统", "lat": 24.9351, "lng": 121.7152, "oppLevel": "待判断", "oppType": "待判断", "relevance": "待判断", "entryPoint": "—", "recommendation": "—", "responsiblePerson": "—", "followStage": "未开始", "nextAction": "—", "internalNote": ""},
+  {"id": "待定", "name": "直潭净水场", "nameTC": "直潭淨水場", "type": "市政饮用水厂", "province": "新北市", "city": "新店区", "location": "大台北地区主力供水", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "4360000", "capacityFutureCMD": "未查到", "phased": "是", "phasedNote": "第六座净水设备扩建70万CMD完工", "serviceTarget": "城市居民;工商业", "serviceTargetName": "大台北地区", "effluent": "饮用水", "waterSource": "新店溪(翡翠水库)", "influentType": "地表水;水库水", "waterQualityChallenge": "高浊度", "owner": "台北自来水事业处", "regulator": "经济部水利署", "district": "北水处体系", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "传统处理(混凝沉淀+快滤) + AI加药", "hasMem": "否", "memType": "非膜工艺", "memCombined": "不适用", "memEnv": "不适用", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "未查到", "memForm": "未查到", "memPoreSize": "未查到", "memOpTime": "不适用", "memRunYears": "不适用", "memRunStatus": "正常供水，引入AI加药优化", "hasPilot": "否", "investment": "未查到", "procure": "未查到", "infoSource": "台北自来水事业处施政报告", "infoLink": "https://www.water.gov.taipei/cp.aspx?n=0E5CC03B9D879F8B", "sourceType": "政府公报", "infoDate": "2024", "credibility": "高", "notes": "暂无明确的膜改造计划", "lat": 24.9419, "lng": 121.5422, "oppLevel": "待判断", "oppType": "待判断", "relevance": "待判断", "entryPoint": "—", "recommendation": "—", "responsiblePerson": "—", "followStage": "未开始", "nextAction": "—", "internalNote": ""},
+  {"id": "待定", "name": "长兴净水场", "nameTC": "長興淨水場", "type": "市政饮用水厂", "province": "台北市", "city": "大安区", "location": "台北市大安、信义区等", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "644100", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "未查到", "serviceTarget": "城市居民;商商业", "serviceTargetName": "大台北地区", "effluent": "饮用水", "waterSource": "新店溪(青潭堰)", "influentType": "地表水;水库水", "waterQualityChallenge": "水量波动大", "owner": "台北自来水事业处", "regulator": "经济部水利署", "district": "北水处体系", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "传统处理", "hasMem": "否", "memType": "非膜工艺", "memCombined": "不适用", "memEnv": "不适用", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "未查到", "memForm": "未查到", "memPoreSize": "未查到", "memOpTime": "不适用", "memRunYears": "不适用", "memRunStatus": "正常供水", "hasPilot": "否", "investment": "未查到", "procure": "未查到", "infoSource": "台北自来水事业处报告", "infoLink": "https://www-ws.gov.taipei/001/Upload/306/relfile/62120/8975670/cc0e8a4c-9e20-48a8-9f44-e2297fb95d94.pdf", "sourceType": "政府公报", "infoDate": "2024", "credibility": "高", "notes": "北水处第二大净水场", "lat": 25.0163, "lng": 121.5469, "oppLevel": "待判断", "oppType": "待判断", "relevance": "待判断", "entryPoint": "—", "recommendation": "—", "responsiblePerson": "—", "followStage": "未开始", "nextAction": "—", "internalNote": ""},
+  {"id": "待定", "name": "石门净水场", "nameTC": "石門淨水場", "type": "市政饮用水厂", "province": "桃园市", "city": "龙潭区", "location": "桃园地区", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "改造中", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "未查到", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "废水泥处理设备工程", "serviceTarget": "城市居民;工业园区", "serviceTargetName": "桃园地区", "effluent": "饮用水", "waterSource": "石门水库", "influentType": "水库水", "waterQualityChallenge": "高浊度", "owner": "台湾自来水公司第二区管理处", "regulator": "经济部水利署", "district": "台水第二区", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "传统处理", "hasMem": "潜在相关", "memType": "需核实", "memCombined": "需核实", "memEnv": "厂内回用处理", "memBrand": "需核实", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "未查到", "memRunStatus": "废水设备更新中", "hasPilot": "否", "investment": "未查到", "procure": "公开招标", "infoSource": "台水公司采购信息", "infoLink": "https://www.water.gov.tw/ch/AnnualReport?nodeId=4571", "sourceType": "企业公告", "infoDate": "2024", "credibility": "中", "notes": "废水处理设备更新是否引入膜过滤回收需进一步核实", "lat": 24.8143, "lng": 121.2423, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "改造中，膜技术潜在相关", "recommendation": "跟进改造内容，确认是否引入膜技术", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年7月", "internalNote": ""},
+  {"id": "待定", "name": "龙潭净水场", "nameTC": "龍潭淨水場", "type": "市政饮用水厂", "province": "桃园市", "city": "龙潭区", "location": "桃园地区", "isIsland": "否", "bigRegion": "北部", "lastVerified": "2026-05-12", "status": "改造中", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "30000", "capacityFutureCMD": "未查到", "phased": "是", "phasedNote": "三期届龄设备更新为日产3万吨", "serviceTarget": "城市居民", "serviceTargetName": "桃园地区", "effluent": "饮用水", "waterSource": "石门水库", "influentType": "水库水", "waterQualityChallenge": "高浊度", "owner": "台湾自来水公司第二区管理处", "regulator": "经济部水利署", "district": "台水第二区", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "传统处理", "hasMem": "潜在相关", "memType": "需核实", "memCombined": "需核实", "memEnv": "需核实", "memBrand": "需核实", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "未查到", "memRunStatus": "设施更新中", "hasPilot": "否", "investment": "未查到", "procure": "公开招标", "infoSource": "立法院专案报告", "infoLink": "https://www.ly.gov.tw/Pages/ashx/File.ashx?FilePath=~/File/Attach/237974/File_19800258.pdf", "sourceType": "政府公报", "infoDate": "2024", "credibility": "中", "notes": "更新设备是否采用膜技术需核实", "lat": 24.8551, "lng": 121.2152, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "改造中，膜技术潜在相关", "recommendation": "跟进改造方案，评估膜技术引入可能", "responsiblePerson": "—", "followStage": "待开展", "nextAction": "2026年7月", "internalNote": ""},
+  {"id": "待定", "name": "鲤鱼潭净水场", "nameTC": "鯉魚潭淨水場", "type": "市政饮用水厂", "province": "苗栗县", "city": "三义乡", "location": "大台中及苗栗部分地区", "isIsland": "否", "bigRegion": "中部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "未查到", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "未查到", "serviceTarget": "城市居民;工业园区", "serviceTargetName": "大台中地区", "effluent": "饮用水", "waterSource": "鲤鱼潭水库", "influentType": "水库水", "waterQualityChallenge": "高浊度", "owner": "台湾自来水公司第四区管理处", "regulator": "经济部水利署", "district": "台水第四区", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "传统处理", "hasMem": "否", "memType": "非膜工艺", "memCombined": "不适用", "memEnv": "不适用", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "未查到", "memForm": "未查到", "memPoreSize": "未查到", "memOpTime": "不适用", "memRunYears": "不适用", "memRunStatus": "正常供水", "hasPilot": "否", "investment": "未查到", "procure": "未查到", "infoSource": "台水公司第四区管理处简报", "infoLink": "https://www.water.gov.tw/dist4/Contents?nodeId=8274", "sourceType": "政府官网", "infoDate": "2025", "credibility": "中", "notes": "中部主力净水场之一", "lat": 24.3401, "lng": 120.7802, "oppLevel": "待判断", "oppType": "待判断", "relevance": "待判断", "entryPoint": "—", "recommendation": "—", "responsiblePerson": "—", "followStage": "未开始", "nextAction": "—", "internalNote": ""},
+  {"id": "待定", "name": "成功净水场", "nameTC": "成功淨水場", "type": "市政饮用水厂", "province": "澎湖县", "city": "湖西乡", "location": "马公市及湖西乡", "isIsland": "是", "bigRegion": "离岛", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "15400", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "实际受水库管控日出4000", "serviceTarget": "城市居民;旅游区/离岛", "serviceTargetName": "马公市及湖西乡", "effluent": "饮用水", "waterSource": "成功水库、东卫水库", "influentType": "地表水;地下水", "waterQualityChallenge": "水量波动大", "owner": "台湾自来水公司第七区管理处", "regulator": "经济部水利署", "district": "台水第七区", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "传统处理", "hasMem": "潜在相关", "memType": "需核实", "memCombined": "需核实", "memEnv": "预处理", "memBrand": "需核实", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "未查到", "memRunStatus": "正常供水", "hasPilot": "否", "investment": "未查到", "procure": "未查到", "infoSource": "台水公司第七区管理处公告", "infoLink": "https://www.water.gov.tw/dist7/Contents?nodeId=8320", "sourceType": "政府官网", "infoDate": "2024", "credibility": "高", "notes": "是否有明确膜替换计划需人工核查", "lat": 23.5701, "lng": 119.6352, "oppLevel": "B", "oppType": "进攻型", "relevance": "中", "entryPoint": "离岛项目，膜技术潜在相关", "recommendation": "补充工艺信息后评估", "responsiblePerson": "—", "followStage": "资料待补充", "nextAction": "2026年8月", "internalNote": ""},
+  {"id": "待定", "name": "大树污水处理厂", "nameTC": "大樹污水處理廠", "type": "市政污水厂", "province": "高雄市", "city": "大树区", "location": "大树区周边", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "未查到", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "未查到", "serviceTarget": "城市居民", "serviceTargetName": "大树区居民", "effluent": "达标排放", "waterSource": "市政污水管网", "influentType": "市政污水", "waterQualityChallenge": "未查到", "owner": "高雄市政府水利局", "regulator": "内政部国土管理署", "district": "不适用", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "三级处理 + UV消毒", "hasMem": "否", "memType": "非膜工艺", "memCombined": "不适用", "memEnv": "不适用", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "未查到", "memForm": "未查到", "memPoreSize": "未查到", "memOpTime": "不适用", "memRunYears": "不适用", "memRunStatus": "正常运营", "hasPilot": "否", "investment": "未查到", "procure": "未查到", "infoSource": "高雄市水利局文件", "infoLink": "https://wrb.kcg.gov.tw/FileDownLoad/FileUpload/20250528113509373820.pdf", "sourceType": "政府公报", "infoDate": "2025", "credibility": "高", "notes": "明确为三级处理但未使用膜法", "lat": 22.6851, "lng": 120.4352, "oppLevel": "待判断", "oppType": "待判断", "relevance": "待判断", "entryPoint": "—", "recommendation": "—", "responsiblePerson": "—", "followStage": "未开始", "nextAction": "—", "internalNote": ""},
+  {"id": "待定", "name": "朴子市水资源回收中心", "nameTC": "朴子市水資源回收中心", "type": "市政污水厂", "province": "嘉义县", "city": "朴子市", "location": "朴子市", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "未查到", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "未查到", "serviceTarget": "城市居民", "serviceTargetName": "朴子市居民", "effluent": "达标排放", "waterSource": "市政污水管网", "influentType": "市政污水", "waterQualityChallenge": "未查到", "owner": "嘉义县政府", "regulator": "内政部国土管理署", "district": "不适用", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "需核实", "hasMem": "需核实", "memType": "需核实", "memCombined": "需核实", "memEnv": "需核实", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "未查到", "memRunStatus": "正常运营", "hasPilot": "否", "investment": "未查到", "procure": "未查到", "infoSource": "环境部开放资料专区", "infoLink": "https://data.moenv.gov.tw/en/dataset/detail/WAD_P_08", "sourceType": "政府官网", "infoDate": "2024", "credibility": "中", "notes": "传统污水厂底数摸排项目", "lat": 23.4651, "lng": 120.2452, "oppLevel": "待判断", "oppType": "待判断", "relevance": "待判断", "entryPoint": "—", "recommendation": "—", "responsiblePerson": "—", "followStage": "未开始", "nextAction": "—", "internalNote": ""},
+  {"id": "待定", "name": "南投县草屯镇水资源回收中心", "nameTC": "南投縣草屯鎮水資源回收中心", "type": "市政污水厂", "province": "南投县", "city": "草屯镇", "location": "草屯镇", "isIsland": "否", "bigRegion": "中部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "未查到", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "未查到", "serviceTarget": "城市居民", "serviceTargetName": "草屯镇居民", "effluent": "达标排放", "waterSource": "市政污水管网", "influentType": "市政污水", "waterQualityChallenge": "未查到", "owner": "南投县政府", "regulator": "内政部国土管理署", "district": "不适用", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "需核实", "hasMem": "需核实", "memType": "需核实", "memCombined": "需核实", "memEnv": "需核实", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "未查到", "memRunStatus": "正常运营", "hasPilot": "否", "investment": "未查到", "procure": "未查到", "infoSource": "环境部开放资料专区", "infoLink": "https://data.moenv.gov.tw/en/dataset/detail/WAD_P_08", "sourceType": "政府官网", "infoDate": "2024", "credibility": "中", "notes": "传统污水厂底数摸排项目", "lat": 23.9851, "lng": 120.6852, "oppLevel": "待判断", "oppType": "待判断", "relevance": "待判断", "entryPoint": "—", "recommendation": "—", "responsiblePerson": "—", "followStage": "未开始", "nextAction": "—", "internalNote": ""},
+  {"id": "待定", "name": "屏东市六块厝污水处理厂", "nameTC": "屏東市污水下水道系統-六塊厝污水處理廠", "type": "市政污水厂", "province": "屏东县", "city": "屏东市", "location": "屏东市", "isIsland": "否", "bigRegion": "南部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "未查到", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "未查到", "serviceTarget": "城市居民", "serviceTargetName": "屏东市居民", "effluent": "达标排放", "waterSource": "市政污水管网", "influentType": "市政污水", "waterQualityChallenge": "未查到", "owner": "屏东县政府", "regulator": "内政部国土管理署", "district": "不适用", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "需核实", "hasMem": "需核实", "memType": "需核实", "memCombined": "需核实", "memEnv": "需核实", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "未查到", "memRunStatus": "正常运营", "hasPilot": "否", "investment": "未查到", "procure": "未查到", "infoSource": "环境部开放资料专区", "infoLink": "https://data.moenv.gov.tw/en/dataset/detail/WAD_P_08", "sourceType": "政府官网", "infoDate": "2024", "credibility": "中", "notes": "传统污水厂底数摸排项目", "lat": 22.6551, "lng": 120.4552, "oppLevel": "待判断", "oppType": "待判断", "relevance": "待判断", "entryPoint": "—", "recommendation": "—", "responsiblePerson": "—", "followStage": "未开始", "nextAction": "—", "internalNote": ""},
+  {"id": "待定", "name": "斗六市水资源回收中心", "nameTC": "雲林縣政府(斗六市水資源回收中心)", "type": "市政污水厂", "province": "云林县", "city": "斗六市", "location": "斗六市", "isIsland": "否", "bigRegion": "中部", "lastVerified": "2026-05-12", "status": "已运营", "buildTime": "未查到", "opTime": "未查到", "capacityCMD": "未查到", "capacityFutureCMD": "未查到", "phased": "否", "phasedNote": "未查到", "serviceTarget": "城市居民", "serviceTargetName": "斗六市居民", "effluent": "达标排放", "waterSource": "市政污水管网", "influentType": "市政污水", "waterQualityChallenge": "未查到", "owner": "云林县政府", "regulator": "内政部国土管理署", "district": "不适用", "epc": "未查到", "integrator": "未查到", "designer": "未查到", "om": "未查到", "botCo": "不适用", "memSupplier": "未查到", "others": "未查到", "process": "需核实", "hasMem": "需核实", "memType": "需核实", "memCombined": "需核实", "memEnv": "需核实", "memBrand": "未查到", "memModel": "未查到", "memMaterial": "需核实", "memForm": "需核实", "memPoreSize": "未查到", "memOpTime": "未查到", "memRunYears": "未查到", "memRunStatus": "正常运营", "hasPilot": "否", "investment": "未查到", "procure": "未查到", "infoSource": "环境部开放资料专区", "infoLink": "https://data.moenv.gov.tw/en/dataset/detail/WAD_P_08", "sourceType": "政府官网", "infoDate": "2024", "credibility": "中", "notes": "传统污水厂底数摸排项目", "lat": 23.7051, "lng": 120.5452, "oppLevel": "待判断", "oppType": "待判断", "relevance": "待判断", "entryPoint": "—", "recommendation": "—", "responsiblePerson": "—", "followStage": "未开始", "nextAction": "—", "internalNote": ""},
 ];
 
-// ────────────────────────────
-//  MAP INIT
-// ────────────────────────────
-const map = L.map('map', { center:[23.6, 120.6], zoom:8 });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution:'© OpenStreetMap contributors © CARTO',
-  subdomains:'abcd', maxZoom:19,
-}).addTo(map);
+const LV_CLR={S:'#e8c16d',A:'#4ecca3',B:'#93c5fd',C:'#8a9a8a','待判断':'#5a8a7a'};
+const LV_SZ ={S:15,A:12,B:10,C:9,'待判断':10};
+const ST_CLS={'已运营':'b-active','施工中':'b-build','规划中':'b-plan','改造中':'b-reno','试运行':'b-trial','招标中':'b-bid'};
+const LV_CLS={S:'b-lvS',A:'b-lvA',B:'b-lvB',C:'b-lvC','待判断':'b-lvW'};
+const MEM_CLS={是:'b-mem-y',否:'b-mem-n'};
+const CRED_CLS={高:'b-cred-h',中:'b-cred-m',低:'b-cred-l'};
 
-// ────────────────────────────
-//  MARKERS
-// ────────────────────────────
-let activeMarker = null;
-const markerObjs = [];
+// Map
+const map=L.map('map',{center:[23.6,120.6],zoom:8});
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19}).addTo(map);
 
-function makeIcon(p) {
-  const c = LEVEL_COLOR[p.level] || '#5a6a5a';
-  const big  = p.level === 'S';
-  const noPulse = (p.level === 'C' || p.level === '—');
-  const coreClass = `mk-c${big ? ' big' : ''}`;
-  const html = `
-    <div class="mk${noPulse ? ' no-pulse' : ''}">
-      <div class="mk-r1" style="border:1px solid ${c}44;background:${c}08"></div>
-      <div class="mk-r2" style="border:1px solid ${c}22"></div>
-      <div class="${coreClass}" style="border-color:${c};box-shadow:0 0 ${big?'10':'6'}px ${c}60"></div>
-    </div>`;
-  return L.divIcon({ html, className:'', iconSize:[34,34], iconAnchor:[17,17] });
+function mkIcon(p){
+  const c=LV_CLR[p.oppLevel]||'#5a8a7a';
+  const sz=LV_SZ[p.oppLevel]||10;
+  const noPulse=(p.oppLevel==='C'||p.oppLevel==='待判断');
+  const pulse=noPulse?'':
+    `<div class="mk-p" style="width:${sz*3}px;height:${sz*3}px;border:1px solid ${c}44;background:${c}08;margin-left:-${sz*1.5-sz/2}px;margin-top:-${sz*1.5-sz/2}px"></div>`+
+    `<div class="mk-p2" style="width:${sz*3}px;height:${sz*3}px;border:1px solid ${c}22;margin-left:-${sz*1.5-sz/2}px;margin-top:-${sz*1.5-sz/2}px"></div>`;
+  const wSz=sz*3;
+  return L.divIcon({
+    html:`<div class="mk" style="width:${wSz}px;height:${wSz}px">${pulse}<div class="mk-c" style="width:${sz}px;height:${sz}px;border-color:${c};box-shadow:0 0 ${sz}px ${c}60"></div></div>`,
+    className:'',iconSize:[wSz,wSz],iconAnchor:[wSz/2,wSz/2]
+  });
 }
 
-plants.forEach((p, i) => {
-  const m = L.marker([p.lat, p.lng], { icon: makeIcon(p) }).addTo(map);
-  m.on('click', () => openCard(p, m));
-  markerObjs.push({ marker:m, plant:p, visible:true });
+// Populate province/city/service/effluent/influent filters
+function unique(arr){return[...new Set(arr.filter(x=>x&&x!=='—'))].sort()}
+const provF=document.getElementById('provF');
+unique(PLANTS.map(p=>p.province)).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;provF.appendChild(o)});
+const cityF=document.getElementById('cityF');
+unique(PLANTS.map(p=>p.city)).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;cityF.appendChild(o)});
+const svcF=document.getElementById('svcF');
+unique(PLANTS.flatMap(p=>p.serviceTarget.split(';'))).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;svcF.appendChild(o)});
+const efflF=document.getElementById('efflF');
+unique(PLANTS.flatMap(p=>p.effluent.split(';'))).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;efflF.appendChild(o)});
+const inflF=document.getElementById('inflF');
+unique(PLANTS.flatMap(p=>p.influentType.split(';'))).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;inflF.appendChild(o)});
+
+// Markers
+let activeMarker=null;
+const MKS=PLANTS.map((p,i)=>{
+  if(!p.lat||!p.lng)return null;
+  const m=L.marker([p.lat,p.lng],{icon:mkIcon(p)}).addTo(map);
+  m.on('click',()=>openCard(p,m));
+  return{marker:m,plant:p};
+}).filter(Boolean);
+
+// Filters
+const activeLvl=new Set(['S','A','B','C','待判断']);
+document.querySelectorAll('.lc').forEach(c=>{
+  c.addEventListener('click',()=>{
+    const lv=c.dataset.lv;
+    if(activeLvl.has(lv)){activeLvl.delete(lv);c.classList.remove('on')}
+    else{activeLvl.add(lv);c.classList.add('on')}
+    applyF();
+  });
 });
 
-// ────────────────────────────
-//  CARD
-// ────────────────────────────
-function statusBadge(s) {
-  return `<span class="badge ${STATUS_CLS[s]||'b-active'}">${s}</span>`;
-}
-function levelBadge(l) {
-  return `<span class="badge b-lvl-${l}">${l} 级</span>`;
-}
-function typeBadge(t) {
-  return `<span class="badge" style="background:rgba(78,204,163,0.08);color:#5aaa80;border:1px solid rgba(78,204,163,0.25)">${t}</span>`;
+const advBtn=document.getElementById('advBtn');
+const advPanel=document.getElementById('adv-panel');
+advBtn.addEventListener('click',()=>{
+  const on=advPanel.classList.toggle('open');
+  advBtn.classList.toggle('on',on);
+  advBtn.textContent=on?'高级筛选 ▴':'高级筛选 ▾';
+});
+
+['SI','typeF','provF','statusF','memF','cityF','islandF','memTypeF','svcF','efflF','inflF','credF','oppTypeF','stageF'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',applyF);
+});
+
+function applyF(){
+  const q=document.getElementById('SI').value.toLowerCase();
+  const ty=document.getElementById('typeF').value;
+  const pv=document.getElementById('provF').value;
+  const st=document.getElementById('statusF').value;
+  const mm=document.getElementById('memF').value;
+  const ci=document.getElementById('cityF').value;
+  const il=document.getElementById('islandF').value;
+  const mt=document.getElementById('memTypeF').value;
+  const sv=document.getElementById('svcF').value;
+  const ef=document.getElementById('efflF').value;
+  const in_=document.getElementById('inflF').value;
+  const cr=document.getElementById('credF').value;
+  const ot=document.getElementById('oppTypeF').value;
+  const sg=document.getElementById('stageF').value;
+  let n=0;
+  MKS.forEach(({marker,plant:p})=>{
+    let ok=true;
+    if(q&&![p.name,p.owner,p.province,p.city,p.location].join(' ').toLowerCase().includes(q))ok=false;
+    if(ty&&p.type!==ty)ok=false;
+    if(pv&&p.province!==pv)ok=false;
+    if(st&&p.status!==st)ok=false;
+    if(mm&&p.hasMem!==mm)ok=false;
+    if(ci&&p.city!==ci)ok=false;
+    if(il&&p.isIsland!==il)ok=false;
+    if(mt&&!p.memType.includes(mt))ok=false;
+    if(sv&&!p.serviceTarget.includes(sv))ok=false;
+    if(ef&&!p.effluent.includes(ef))ok=false;
+    if(in_&&!p.influentType.includes(in_))ok=false;
+    if(cr&&p.credibility!==cr)ok=false;
+    if(ot&&p.oppType!==ot)ok=false;
+    if(sg&&p.followStage!==sg)ok=false;
+    if(activeLvl.size>0&&!activeLvl.has(p.oppLevel))ok=false;
+    if(ok){marker.addTo(map);n++}else{map.removeLayer(marker)}
+  });
+  document.getElementById('CC').textContent=`${n} 个项目`;
 }
 
-function renderCard(p) {
-  const memSection = p.hasMem
-    ? `<div class="mem-block">
-        <div class="mem-row"><span class="ml">膜技术类型</span><span class="mr">${p.memType||'—'}</span></div>
-        <div class="mem-row"><span class="ml">现有膜品牌</span><span class="mr">${p.memBrand||'—'}</span></div>
-        <div class="mem-row"><span class="ml">膜组件型号</span><span class="mr">${p.memModel||'—'}</span></div>
-       </div>`
-    : `<div style="font-size:11px;color:#2d6045;font-style:italic;padding:6px 0">暂未发现膜技术应用</div>`;
+// Card
+function b(cls,txt){return`<span class="badge ${cls}">${txt}</span>`}
+function kv(lbl,val,full){
+  if(!val||val==='—'||val==='未查到'||val==='不适用')return'';
+  return`<div class="kv${full?' full':''}"><label>${lbl}</label><span>${val}</span></div>`;
+}
+function kvhi(lbl,val,full){
+  if(!val||val==='—'||val==='未查到'||val==='不适用')return'';
+  return`<div class="kv${full?' full':''}"><label>${lbl}</label><span class="hi">${val}</span></div>`;
+}
+
+function memBadge(v){
+  if(v==='是')return b('b-mem-y','涉及膜技术');
+  if(v==='否')return b('b-mem-n','未涉及膜技术');
+  if(v==='规划采用')return b('b-mem-o','规划采用膜技术');
+  if(v==='试点测试')return b('b-mem-o','试点测试');
+  if(v==='潜在相关')return b('b-mem-o','潜在相关');
+  return b('b-mem-n',v);
+}
+
+function memSection(p){
+  const show=['是','规划采用','试点测试','潜在相关','需核实'].includes(p.hasMem);
+  if(!show)return'';
+  const rows=[
+    p.memType!=='—'?`<div class="mem-r"><span class="ml">膜技术类型</span><span class="mr">${p.memType}</span></div>`:'',
+    p.memCombined!=='—'?`<div class="mem-r"><span class="ml">是否组合膜工艺</span><span class="mr">${p.memCombined}</span></div>`:'',
+    p.memEnv!=='—'?`<div class="mem-r"><span class="ml">应用环节</span><span class="mr wide">${p.memEnv}</span></div>`:'',
+    p.memBrand!=='—'&&p.memBrand!=='未查到'?`<div class="mem-r"><span class="ml">已知膜品牌</span><span class="mr wide">${p.memBrand}</span></div>`:'',
+    p.memSupplier!=='—'&&p.memSupplier!=='未查到'?`<div class="mem-r"><span class="ml">膜供应商</span><span class="mr">${p.memSupplier}</span></div>`:'',
+    p.memModel!=='—'&&p.memModel!=='未查到'?`<div class="mem-r"><span class="ml">膜组件型号</span><span class="mr">${p.memModel}</span></div>`:'',
+    p.memMaterial!=='—'&&p.memMaterial!=='未查到'?`<div class="mem-r"><span class="ml">膜材料</span><span class="mr">${p.memMaterial}</span></div>`:'',
+    p.memForm!=='—'&&p.memForm!=='未查到'?`<div class="mem-r"><span class="ml">膜组件形式</span><span class="mr">${p.memForm}</span></div>`:'',
+    p.memPoreSize!=='—'&&p.memPoreSize!=='未查到'?`<div class="mem-r"><span class="ml">膜孔径</span><span class="mr">${p.memPoreSize}</span></div>`:'',
+    p.memOpTime!=='—'&&p.memOpTime!=='未查到'?`<div class="mem-r"><span class="ml">膜系统投运时间</span><span class="mr">${p.memOpTime}</span></div>`:'',
+    p.memRunYears!=='—'&&p.memRunYears!=='未查到'?`<div class="mem-r"><span class="ml">运行年限</span><span class="mr">${p.memRunYears}</span></div>`:'',
+    p.memRunStatus!=='—'&&p.memRunStatus!=='未查到'?`<div class="mem-r"><span class="ml">运行情况</span><span class="mr wide">${p.memRunStatus}</span></div>`:'',
+    p.hasPilot!=='—'&&p.hasPilot!=='否'?`<div class="mem-r"><span class="ml">试验/验证项目</span><span class="mr">${p.hasPilot}</span></div>`:'',
+  ].filter(Boolean).join('');
+  return rows?`<div class="mem-blk">${rows}</div>`:'';
+}
+
+function renderCard(p){
+  const lvCls=LV_CLS[p.oppLevel]||'b-lvW';
+  const stCls=ST_CLS[p.status]||'b-active';
+  const credCls=CRED_CLS[p.credibility]||'';
+
+  // link
+  let linkHtml='—';
+  if(p.infoLink&&p.infoLink!=='—'&&p.infoLink.startsWith('http')){
+    const disp=p.infoLink.length>45?p.infoLink.slice(0,45)+'…':p.infoLink;
+    linkHtml=`<a class="src-link" href="${p.infoLink}" target="_blank" rel="noopener">${disp}</a>`;
+  } else if(p.infoLink&&p.infoLink!=='—'){
+    linkHtml=p.infoLink;
+  }
 
   return `
-    <div class="c-loc">${p.region}</div>
-    <div class="c-name">${p.name}</div>
-    <div class="c-badges">
-      ${typeBadge(p.type)}${statusBadge(p.status)}${p.level!=='—'?levelBadge(p.level):''}
-    </div>
-    <div class="c-tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+  <!-- 摘要 -->
+  <div class="c-loc">${p.province} · ${p.city}</div>
+  <div class="c-name">${p.name}</div>
+  ${p.nameTC&&p.nameTC!=='—'?`<div class="c-tc">${p.nameTC}</div>`:''}
+  <div class="c-badges">
+    <span class="badge" style="background:rgba(78,204,163,.08);color:#5aaa80;border:1px solid rgba(78,204,163,.25);font-size:9px;padding:2px 9px;border-radius:20px">${p.type}</span>
+    ${b(stCls,p.status)}
+    ${p.oppLevel!=='—'?b(lvCls,p.oppLevel+' 级'):''}
+    ${p.oppType&&p.oppType!=='待判断'?b('badge',''+p.oppType):''}
+    ${p.isIsland==='是'?b('b-island','离岛'):''}
+  </div>
 
-    <!-- 基础信息 -->
-    <div class="sec">
-      <div class="sec-hd">基础信息</div>
-      <div class="kv-grid">
-        <div class="kv"><label>处理规模</label><span class="hi">${p.capacity}</span></div>
-        <div class="kv"><label>投运时间</label><span>${p.opYear}</span></div>
-        <div class="kv full"><label>业主单位</label><span>${p.owner}</span></div>
-        <div class="kv full"><label>服务区域</label><span>${p.serviceArea}</span></div>
-        <div class="kv"><label>水源类型</label><span>${p.waterSource}</span></div>
-        <div class="kv"><label>信息来源</label><span>${p.infoSource}</span></div>
-      </div>
+  <!-- 基础信息 -->
+  <div class="sec">
+    <div class="sec-hd">基础信息</div>
+    <div class="kv-grid">
+      ${kvhi('当前规模 CMD',p.capacityCMD)}
+      ${kv('远期规模 CMD',p.capacityFutureCMD)}
+      ${kv('投运时间',p.opTime)}
+      ${kv('建设时间',p.buildTime)}
+      ${kv('是否分期建设',p.phased==='是'?'是':'',false)}
+      ${kv('是否离岛',p.isIsland)}
     </div>
+    ${p.phased==='是'&&p.phasedNote!=='—'&&p.phasedNote!=='未查到'?`<div class="kv full"><label>分期情况说明</label><span>${p.phasedNote}</span></div>`:''}
+    ${kvhi('业主单位',p.owner,true)}
+    ${kv('所属系统/区处',p.district,true)}
+    ${kv('主管/监管单位',p.regulator,true)}
+  </div>
 
-    <!-- 技术与工艺 -->
-    <div class="sec">
-      <div class="sec-hd">技术与工艺</div>
-      <div class="kv" style="margin-bottom:10px">
-        <label>工艺路线</label>
-        <div class="process-box">${p.process}</div>
-      </div>
-      <div class="kv" style="margin-bottom:10px">
-        <label>膜技术应用</label>
-        ${memSection}
-      </div>
-      <div class="kv-grid">
-        <div class="kv full"><label>已知问题</label><span>${p.knownIssues}</span></div>
-        <div class="kv full"><label>潜在切入点</label><span class="hi">${p.entryPoint}</span></div>
-      </div>
+  <!-- 水源与用途 -->
+  <div class="sec">
+    <div class="sec-hd">水源与用途</div>
+    <div class="kv-grid">
+      ${kv('水源地/取水口',p.waterSource)}
+      ${kv('原水/进水类型',p.influentType)}
+      ${kv('服务对象/用水端',p.serviceTarget)}
+      ${kv('出水用途',p.effluent)}
+      ${kv('主要服务对象',p.serviceTargetName,true)}
+      ${kv('主要水质挑战',p.waterQualityChallenge,true)}
     </div>
+  </div>
 
-    <!-- 机会判断 -->
-    <div class="sec">
-      <div class="sec-hd">机会判断</div>
-      <div class="opp-block">
-        <div class="opp-row"><span class="ol">相关性</span><span class="or">${p.relevance}</span></div>
-        <div class="opp-row"><span class="ol">机会类型</span><span class="or">${p.oppType}</span></div>
-        <div class="opp-row" style="flex-direction:column;gap:4px;align-items:flex-start">
-          <span class="ol">切入方向</span><span class="or wide">${p.entryDirection}</span>
-        </div>
-        <div class="opp-row" style="flex-direction:column;gap:4px;align-items:flex-start">
-          <span class="ol">推荐动作</span><span class="or wide">${p.recommendation}</span>
-        </div>
-      </div>
+  <!-- 工艺与膜技术 -->
+  <div class="sec">
+    <div class="sec-hd">工艺与膜技术</div>
+    ${p.process!=='—'?`<div class="kv full" style="margin-bottom:10px"><label>现有工艺路线</label><div class="process-box">${p.process}</div></div>`:''}
+    <div style="margin-bottom:8px">${memBadge(p.hasMem)}</div>
+    ${memSection(p)}
+    <div class="kv-grid" style="margin-top:8px">
+      ${kv('项目投资金额',p.investment)}
+      ${kv('采购/招标方式',p.procure)}
     </div>
+  </div>
 
-    <!-- 跟进信息 -->
-    <div class="sec">
-      <div class="sec-hd">跟进信息</div>
-      <div class="follow-block">
-        <div class="follow-row"><span class="fl">负责人</span><span class="fr">${p.responsiblePerson}</span></div>
-        <div class="follow-row"><span class="fl">当前阶段</span><span class="fr">${p.currentStage}</span></div>
-        <div class="follow-row"><span class="fl">下一步时间</span><span class="fr">${p.nextStepDate}</span></div>
-        <div class="follow-row"><span class="fl">跟进状态</span><span class="fr">${p.followUpStatus}</span></div>
-        <div class="follow-row"><span class="fl">资料更新日期</span><span class="fr">${p.updateDate}</span></div>
+  <!-- 参与单位 (collapsible) -->
+  <div class="sec">
+    <button class="coll-btn" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'参与单位 ▴':'参与单位 ▾'">参与单位 ▾</button>
+    <div class="coll-content">
+      <div class="kv-grid" style="margin-top:10px">
+        ${kv('业主单位',p.owner)}
+        ${kv('主管/监管单位',p.regulator)}
+        ${kv('EPC/统包商',p.epc)}
+        ${kv('系统集成商',p.integrator)}
+        ${kv('设计院/设计顾问',p.designer)}
+        ${kv('运维/代操作方',p.om)}
+        ${kv('BOT/PPP项目公司',p.botCo)}
+        ${kv('膜供应商',p.memSupplier)}
+        ${kv('其他关键参与单位',p.others,true)}
       </div>
     </div>
+  </div>
 
-    <!-- 资料完整度 -->
-    <div class="complete-wrap">
-      <div class="complete-hd">
-        <span class="complete-label">资料完整度</span>
-        <span class="complete-pct">${p.completeness}%</span>
-      </div>
-      <div class="complete-bar">
-        <div class="complete-fill" style="width:${p.completeness}%"></div>
-      </div>
+  <!-- 内部作战判断 -->
+  <div class="sec">
+    <div class="sec-hd">内部作战判断 <span class="tag">INTERNAL</span></div>
+    <div class="opp-blk">
+      <div class="opp-r"><span class="ol">与立升相关性</span><span class="or">${p.relevance}</span></div>
+      <div class="opp-r"><span class="ol">机会等级</span><span class="or">${p.oppLevel}</span></div>
+      <div class="opp-r"><span class="ol">机会类型</span><span class="or">${p.oppType}</span></div>
+      ${p.entryPoint&&p.entryPoint!=='—'?`<div class="opp-r" style="flex-direction:column;gap:4px;align-items:flex-start"><span class="ol">潜在切入点</span><span class="or wide">${p.entryPoint}</span></div>`:''}
+      ${p.recommendation&&p.recommendation!=='—'?`<div class="opp-r" style="flex-direction:column;gap:4px;align-items:flex-start"><span class="ol">推荐下一步动作</span><span class="or wide">${p.recommendation}</span></div>`:''}
+      <div class="opp-r"><span class="ol">负责人</span><span class="or">${p.responsiblePerson||'—'}</span></div>
+      <div class="opp-r"><span class="ol">跟进阶段</span><span class="or">${p.followStage}</span></div>
+      <div class="opp-r"><span class="ol">下次动作时间</span><span class="or">${p.nextAction||'—'}</span></div>
+      ${p.internalNote?`<div class="opp-r" style="flex-direction:column;gap:4px;align-items:flex-start"><span class="ol">内部备注</span><span class="or wide">${p.internalNote}</span></div>`:''}
     </div>
+  </div>
 
-    <!-- 按钮 -->
-    <div class="card-btns">
-      <button class="btn-outline">查看完整档案</button>
-      <button class="btn-solid">新增跟进记录</button>
+  <!-- 信息来源与可信度 -->
+  <div class="sec">
+    <div class="sec-hd">信息来源与可信度</div>
+    <div class="kv-grid">
+      <div class="kv"><label>信息可信度</label><span>${credCls?b(credCls,p.credibility):p.credibility}</span></div>
+      ${kv('来源类型',p.sourceType)}
+      ${kv('信息发布日期',p.infoDate)}
+      ${kv('最后核实日期',p.lastVerified)}
     </div>
-  `;
+    ${kv('主要信息来源',p.infoSource,true)}
+    <div class="kv full"><label>相关链接/出处</label><span>${linkHtml}</span></div>
+    ${p.notes&&p.notes!=='—'&&p.notes!=='未查到'?`<div class="kv full" style="margin-top:6px"><label>备注/待核实点</label><div class="warn-box">${p.notes}</div></div>`:''}
+  </div>
+
+  <div class="card-btns">
+    <button class="btn-o">查看完整档案</button>
+    <button class="btn-s">新增跟进记录</button>
+  </div>`;
 }
 
-function openCard(p, m) {
-  if (activeMarker && activeMarker !== m) {
-    activeMarker.getElement()?.querySelector('.mk-c')?.classList.remove('act');
-  }
-  activeMarker = m;
+function openCard(p,m){
+  if(activeMarker&&activeMarker!==m)activeMarker.getElement()?.querySelector('.mk-c')?.classList.remove('act');
+  activeMarker=m;
   m.getElement()?.querySelector('.mk-c')?.classList.add('act');
-  document.getElementById('cardBody').innerHTML = renderCard(p);
+  document.getElementById('CB').innerHTML=renderCard(p);
   document.getElementById('card').classList.add('open');
-  map.panTo([p.lat, p.lng], { animate:true, duration:0.6 });
+  map.panTo([p.lat,p.lng],{animate:true,duration:.6});
 }
-
-function closeCard() {
+function closeCard(){
   document.getElementById('card').classList.remove('open');
-  if (activeMarker) {
-    activeMarker.getElement()?.querySelector('.mk-c')?.classList.remove('act');
-    activeMarker = null;
-  }
+  if(activeMarker){activeMarker.getElement()?.querySelector('.mk-c')?.classList.remove('act');activeMarker=null;}
 }
-
-map.on('click', e => {
-  if (e.originalEvent.target.classList.contains('leaflet-container') ||
-      e.originalEvent.target.tagName === 'CANVAS') closeCard();
-});
-
-// ────────────────────────────
-//  FILTERS
-// ────────────────────────────
-const activeLevels = new Set(['S','A','B','C']);
-
-document.querySelectorAll('.lvl-chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    const lvl = chip.dataset.lvl;
-    if (activeLevels.has(lvl)) { activeLevels.delete(lvl); chip.classList.remove('on'); }
-    else                        { activeLevels.add(lvl);    chip.classList.add('on'); }
-    applyFilters();
-  });
-});
-
-['searchInput','typeFilter','regionFilter','statusFilter','memFilter'].forEach(id => {
-  document.getElementById(id).addEventListener('input', applyFilters);
-  document.getElementById(id).addEventListener('change', applyFilters);
-});
-
-function applyFilters() {
-  const search = document.getElementById('searchInput').value.toLowerCase();
-  const type   = document.getElementById('typeFilter').value;
-  const region = document.getElementById('regionFilter').value;
-  const status = document.getElementById('statusFilter').value;
-  const mem    = document.getElementById('memFilter').value;
-
-  let count = 0;
-  markerObjs.forEach(({ marker, plant: p }) => {
-    let show = true;
-    if (search && !p.name.includes(search) && !p.region.toLowerCase().includes(search) && !p.owner.toLowerCase().includes(search)) show = false;
-    if (type   && p.type !== type)          show = false;
-    if (region && p.bigRegion !== region)   show = false;
-    if (status && p.status !== status)      show = false;
-    if (activeLevels.size > 0 && !activeLevels.has(p.level)) show = false;
-    if (mem === 'yes' && !p.hasMem)         show = false;
-    if (mem === 'no'  && p.hasMem !== false) show = false;
-
-    if (show) { marker.addTo(map); count++; }
-    else      { map.removeLayer(marker); }
-  });
-
-  document.getElementById('countChip').textContent = `${count} 个项目`;
-}
+map.on('click',e=>{if(e.originalEvent.target.classList.contains('leaflet-container')||e.originalEvent.target.tagName==='CANVAS')closeCard();});
 </script>
 </body>
 </html>
